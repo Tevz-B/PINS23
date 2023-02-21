@@ -55,6 +55,8 @@ public class Lexer {
      * 
      * @return seznam leksikalnih simbolov.
      */
+    // '''' je en narekovaj v narekovajih "'"
+    // 'bla' je string const
     public List<Symbol> scan() {
         var symbols = new ArrayList<Symbol>();
         // todo: implementacija leksikalne analize
