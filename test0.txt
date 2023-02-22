@@ -1,0 +1,6 @@
+integer X = 5;
+integer Y == 10;
+string 1bgf <= TRUE;
+# komentar
+    Tab
+ Space
