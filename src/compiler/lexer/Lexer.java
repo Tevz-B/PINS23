@@ -61,80 +61,121 @@ public class Lexer {
         var symbols = new ArrayList<Symbol>();
     
         // todo: implementacija leksikalne analize
-        System.out.println("Lex analiza todo remove");
-        
-        int line = 1; 
-        int startLine = 1;
-        int column = 1;
-        int startColumn = 1;
+        var currPosition = new Position(1,1,1,1);
+        var startPosition = new Position(1,1,1,1);
+
         String lexeme = "";
-        for (int sourcePos = 0; sourcePos < source.length(); sourcePos++) {
-            char c = source.charAt(sourcePos);
-            if (c > 32 && c < 127) {
-                if (c == 32) { // space
-                    // zamakni za 1
-                    
-                    if (!lexeme.isEmpty()) {
-                        // insert symbol
-                        TokenType type = keywordMapping.get(lexeme);
-                        if (type == null) {
-                            // todo
-                            type = IDENTIFIER;
-                        }
-                        symbols.add(new Symbol(new Location(startLine, startColumn), new Location(line, column), type, lexeme)); // maybe copy string
-                        lexeme = "";
+        for (int pos = 0; pos < source.length(); ++pos) {
+            char c = source.charAt(pos);
+
+            switch(categorize(c)) {
+                case LETTER: 
+                    break;
+                case NUMBER: 
+                    break;
+                case SYMBOL: 
+                    break;
+                case SPACE: 
+                    break;
+                case TAB: 
+                    break;
+                case NEWLINE: 
+                    break;
+                case STRSYM: 
+                    break;
+                case COMMENT: 
+                    break;
+                case NO_CATEGORY: 
+                    break;
+            }
+            if (c == 32) { // space
+                // zamakni za 1
+                
+                if (!lexeme.isEmpty()) {
+                    // insert symbol
+                    TokenType type = keywordMapping.get(lexeme);
+                    if (type == null) {
+                        // todo
+                        type = IDENTIFIER;
                     }
-                    ++column;
-                    // reset startLine and column count
-                    startLine = line;
-                    startColumn = column;
+                    System.out.println(lexeme);
+                    symbols.add(new Symbol(new Location(startLine, startColumn), new Location(line, column), type, lexeme)); // maybe copy string
                     lexeme = "";
                 }
-                else if (c == 9) { // tab
-                    // zamakni za 4
+                ++column;
+                // reset startLine and column count
+                startLine = line;
+                startColumn = column;
+                lexeme = "";
+            }
+            else if (c == 9) { // tab
+                // zamakni za 4
 
-                    if (!lexeme.isEmpty()) {
-                        // insert symbol
-                        TokenType type = keywordMapping.get(lexeme);
-                        if (type == null) {
-                            // todo
-                            type = IDENTIFIER;
-                        }
-                        symbols.add(new Symbol(new Location(startLine, startColumn), new Location(line, column), type, lexeme)); // maybe copy string
-                        lexeme = "";
-
+                if (!lexeme.isEmpty()) {
+                    // insert symbol
+                    TokenType type = keywordMapping.get(lexeme);
+                    if (type == null) {
+                        // todo
+                        type = IDENTIFIER;
                     }
-                    column += 4;
+                    symbols.add(new Symbol(new Location(startLine, startColumn), new Location(line, column), type, lexeme)); // maybe copy string
+                    lexeme = "";
 
-                    startLine = line;
-                    startColumn = column;
                 }
-                else if (c == 10 || c == 13) { // newline
-                    if (!lexeme.isEmpty()) {
-                        // insert symbol
-                        TokenType type = keywordMapping.get(lexeme);
-                        if (type == null) {
-                            // todo
-                            type = IDENTIFIER;
-                        }
-                        symbols.add(new Symbol(new Location(startLine, startColumn), new Location(line, column), type, lexeme)); // maybe copy string
-                        lexeme = "";
+                column += 4;
 
+                startLine = line;
+                startColumn = column;
+            }
+            else if (c == 10 || c == 13) { // newline
+                if (!lexeme.isEmpty()) {
+                    // insert symbol
+                    TokenType type = keywordMapping.get(lexeme);
+                    if (type == null) {
+                        // todo
+                        type = IDENTIFIER;
                     }
-                    column = 1;
-                    ++line;
+                    symbols.add(new Symbol(new Location(startLine, startColumn), new Location(line, column), type, lexeme)); // maybe copy string
+                    lexeme = "";
 
-                    startLine = line;
-                    startColumn = column;
-           
                 }
-                else if (c > 64 && c < 91 || c > 96 && c < 123 )  { // crka
+                column = 1;
+                ++line;
+                startLine = line;
+                startColumn = column;
+       
+            } 
+            else if (c > 32 && c < 127) {
+                if (c > 64 && c < 91 || c > 96 && c < 123 )  { // crka
                     ++column;
                     lexeme = lexeme + c;
                 }
             }
         }
-
         return symbols;
+    }
+
+    private enum Category {
+        LETTER, // _ is a letter
+        NUMBER, // 0 - 9
+        SYMBOL, // + - * / % & | ! == != < > <= >= ( ) [ ] { } : ; . , =
+        SPACE, // 32
+        TAB, // 9
+        NEWLINE, // 10 13
+        STRSYM, // '
+        COMMENT, // #
+        NO_CATEGORY
+    }
+
+    private Category categorize(char c) {
+        if (c == 9) return Category.TAB;
+        else if (c == 10 || c == 13) return Category.NEWLINE;
+        else if (c == 32) return Category.SPACE;
+        else if (c == 35) return Category.COMMENT;
+        else if (c == 39) return Category.STRSYM;
+        else if (c >= 48 && c <= 57) return Category.NUMBER;
+        else if ("+-*/%&|!<>=()[]{}:;.,".indexOf(c) >= 0) return Category.SYMBOL;
+        else if (c >= 65 && c <= 90 || c >= 97 && c <= 122 || c == 95) return Category.LETTER;
+        return Category.NO_CATEGORY;
     }
 }

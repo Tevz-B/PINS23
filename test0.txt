@@ -1,6 +1,8 @@
 integer X = 5;
 integer Y == 10;
 string 1bgf <= TRUE;
+while arr else Else
+True ; 
 # komentar
     Tab
  Space
