@@ -57,6 +57,10 @@ public class Lexer {
      */
     // '''' je en narekovaj v narekovajih "'"
     // 'bla' je string const
+    // Pravilo: niz more biti zakljucen: ''' je napaka
+    // Pravilo: vedno dodamo EOF (zadnji simbol)
+    // Pravilo: najdaljse ujemanje - pozresno
+    // Pravilo: tabulator je premik za 4
     public List<Symbol> scan() {
         var symbols = new ArrayList<Symbol>();
     
