@@ -136,17 +136,21 @@ public class Lexer {
                 case NUM_CONST: 
                 switch (categorize(c)) {
                     case COMMENT:
-                        symbols.add(createSymbol(currPosition, lexeme, C_INTEGER ));
+                        symbols.add(new Symbol(currPosition, C_INTEGER, lexeme));
                         lexeme = "" + c;
+                        currPosition.end.column += 1;
+                        currPosition.start.column = currPosition.end.column;
                         state = State.COMMENT;
                         break;
                     case LETTER:
-                        symbols.add(createSymbol(currPosition, lexeme, C_INTEGER));
+                        symbols.add(new Symbol(currPosition, C_INTEGER, lexeme));
                         lexeme = "" + c;
+                        currPosition.end.column += 1;
+                        currPosition.start.column = currPosition.end.column;
                         state = State.WORD;
                         break;
                     case NEWLINE:
-                        symbols.add(createSymbol(currPosition, lexeme, C_INTEGER));
+                        symbols.add(new Symbol(currPosition, C_INTEGER, lexeme));
                         lexeme = "";
                         currPosition.end.line += 1;
                         currPosition.start.line = currPosition.end.line;
@@ -155,29 +159,37 @@ public class Lexer {
                         state = State.WHITESPACE;
                         break;
                     case TAB:
-                        symbols.add(createSymbol(currPosition, lexeme, C_INTEGER));
+                        symbols.add(new Symbol(currPosition, C_INTEGER, lexeme));
                         lexeme = "";
-                        currPosition.end.column += 3;
+                        currPosition.end.column += 4;
                         currPosition.start.column = currPosition.end.column;
                         state = State.WHITESPACE;
                         break;
                     case SPACE:
-                        symbols.add(createSymbol(currPosition, lexeme, C_INTEGER));
+                        symbols.add(new Symbol(currPosition, C_INTEGER, lexeme));
                         lexeme = "";
+                        currPosition.end.line += 1;
+                        currPosition.start.line = currPosition.end.line;
                         state = State.WHITESPACE;
                         break;
+                    
                     case NUMBER:
                         currPosition.end.column += 1;
                         lexeme += c;
                         break;
+                    
                     case STRSYM:
-                        symbols.add(createSymbol(currPosition, lexeme, C_INTEGER));
+                        symbols.add(new Symbol(currPosition, C_INTEGER, lexeme));
                         lexeme = "" + c;
+                        currPosition.end.column += 1;
+                        currPosition.start.column = currPosition.end.column;
                         state = State.STR_CONST;
                         break;
                     case SYMBOL:
-                        symbols.add(createSymbol(currPosition, lexeme, C_INTEGER));
+                        symbols.add(new Symbol(currPosition, C_INTEGER, lexeme));
                         lexeme = "" + c;
+                        currPosition.end.column += 1;
+                        currPosition.start.column = currPosition.end.column;
                         state = State.SYMBOL;
                         break;
 
@@ -201,8 +213,11 @@ public class Lexer {
                         currPosition.end.column += 1;
                         lexeme += c;
                         break;
-                    case SYMBOL: 
+                    case SYMBOL: // TODO check if ok pos
                         symbols.add(createSymbol(currPosition, lexeme));
+                        //symbols.add(new Symbol(currPosition, TokenType.KW_ASDASD, lexeme));
+                        //currPosition.end.column += 1;
+                        //currPosition.start.column = currPosition.end.column;
                         lexeme = "" + c; 
                         state = State.SYMBOL;
                         break;
@@ -237,7 +252,6 @@ public class Lexer {
                         lexeme = "" + c;
                         state = State.COMMENT;
                         break;
-
                     case OTHER: // no others like ? in ID and KW ,...
                     case NO_CATEGORY:
                         Report.error(currPosition, "Bad symbol: " + c);
@@ -245,6 +259,7 @@ public class Lexer {
                     default:
                         Report.error(currPosition, "Unhandled symbol:" + c);
                         break;
+
                 }
                 break;
 
@@ -301,7 +316,6 @@ public class Lexer {
                             lexeme = "" + c;
                             state = State.COMMENT;
                             break;
-
                         case OTHER:
                         case NO_CATEGORY:
                             Report.error(currPosition, "Bad symbol: " + c);
@@ -317,7 +331,7 @@ public class Lexer {
 
             }
         }
-        symbols.add(new Symbol(currPosition.copy(), EOF, ""));
+        symbols.add(new Symbol(currPosition, EOF, ""));
         return symbols;
     }
 
@@ -395,13 +409,8 @@ public class Lexer {
     }
 
     private Symbol createSymbol(Position pos, String lexeme, TokenType type) {
-        Symbol newSymbol = new Symbol(new Position(
-                                        pos.start.line, 
-                                        pos.start.column, 
-                                        pos.start.line, 
-                                        pos.start.column+lexeme.length()-1), 
-                                            type, lexeme);
-        pos.end.column = pos.start.column+lexeme.length(); // because above ^^^^ +1x
+        Symbol newSymbol = new Symbol(pos, type, lexeme);
+        pos.end.column += 1;
         pos.start.column = pos.end.column;
         return newSymbol;
     }

@@ -56,6 +56,14 @@ public class Position {
         return new Position(location, location);
     }
 
+    /**
+     * Nova iz pozicije (kopija)
+     */
+    public Position copy() {
+        return new Position(start.line, start.column, end.line, end.column);
+    }
+    
+
     @Override
     public String toString() {
         if (start.toString().equals(end.toString())) {
