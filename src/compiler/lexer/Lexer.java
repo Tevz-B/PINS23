@@ -66,69 +66,74 @@ public class Lexer {
     
         // todo: implementacija leksikalne analize
         final int startPos = 1;
-        var currPosition = new Position(startPos,startPos,startPos,startPos);
-        //var startPosition = new Position(startPos,startPos,startPos,startPos);
-        
+        int column = startPos;
+        int line = startPos;        
 
         String lexeme = "";
-        //Category prevCategory = Category.NO_CATEGORY;
         State state = State.START;
+        char c = 0;
+  
 
         for (int pos = 0; pos < source.length(); ++pos) {
-            char c = source.charAt(pos);
+            
+            c = source.charAt(pos);
+
+            if (c == 13 ) { // skip CR
+                if (pos + 1 < source.length() && source.charAt(pos+1) == 10)
+                    continue;
+                else 
+                    Report.error(new Position(line, column, line, column), "CR character not followed by LF");
+            }
+
             switch (state) {
                 case START:
                 case WHITESPACE:
                 switch (categorize(c)) {
                     case LETTER:
-                        currPosition.end.column += 1;
+                        column++;
                         lexeme += c;
                         state = State.WORD;
                         break;
                     case NUMBER: 
-                        currPosition.end.column += 1;
+                        column++;
                         lexeme += c;
                         state = State.NUM_CONST;
                         break;
                     case SYMBOL: 
-                        currPosition.end.column += 1;
+                        column++;
                         lexeme += c;
                         state = State.SYMBOL;
                         break;
                     case SPACE:
-                        currPosition.end.column += 1;
-                        currPosition.start.column = currPosition.end.column;
+                        column++;
                         state = State.WHITESPACE;
                         break;
                     case TAB: 
-                        currPosition.end.column += 4;
-                        currPosition.start.column = currPosition.end.column;
+                        column = ((column-1) / 4 + 1) * 4 + 1; // ((currPosition-1)/4 + 1 ) * 4 + 2;
                         state = State.WHITESPACE;
                         break;
                     case NEWLINE:
-                        currPosition.start.line += 1;
-                        currPosition.end.line += 1;
-                        currPosition.start.column = startPos;
-                        currPosition.end.column = startPos;
+                        line++;
+                        column = startPos;
                         state = State.WHITESPACE;
                         break;
                     case STRSYM: 
-                        currPosition.end.column += 1;
+                        column++;
                         lexeme += c;
                         state = State.STR_CONST;
                         break;
                     case COMMENT:
-                        currPosition.end.column += 1;
+                        column++;
                         lexeme += c;
                         state = State.COMMENT;
                         break;
                     
                     case OTHER:
                     case NO_CATEGORY:
-                        Report.error(currPosition, "Bad symbol " + c);
+                        Report.error(new Position(line, column, line, column), "Bad symbol " + c);
                         break;
                     default:
-                        Report.error(currPosition, "Unhandled symbol:" + c);
+                        Report.error(new Position(line, column, line, column), "Unhandled symbol:" + c);
                         break;
                 }
                 break;
@@ -136,57 +141,58 @@ public class Lexer {
                 case NUM_CONST: 
                 switch (categorize(c)) {
                     case COMMENT:
-                        symbols.add(createSymbol(currPosition, lexeme, C_INTEGER ));
+                        symbols.add(createSymbol(line, column, lexeme, C_INTEGER ));
+                        column++;
                         lexeme = "" + c;
                         state = State.COMMENT;
                         break;
                     case LETTER:
-                        symbols.add(createSymbol(currPosition, lexeme, C_INTEGER));
+                        symbols.add(createSymbol(line, column, lexeme, C_INTEGER));
+                        column++;
                         lexeme = "" + c;
                         state = State.WORD;
                         break;
                     case NEWLINE:
-                        symbols.add(createSymbol(currPosition, lexeme, C_INTEGER));
+                        symbols.add(createSymbol(line, column, lexeme, C_INTEGER));
                         lexeme = "";
-                        currPosition.end.line += 1;
-                        currPosition.start.line = currPosition.end.line;
-                        currPosition.start.column = startPos;
-                        currPosition.end.column = startPos;
+                        line++; column = startPos;
                         state = State.WHITESPACE;
                         break;
                     case TAB:
-                        symbols.add(createSymbol(currPosition, lexeme, C_INTEGER));
+                        symbols.add(createSymbol(line, column, lexeme, C_INTEGER));
                         lexeme = "";
-                        currPosition.end.column += 3;
-                        currPosition.start.column = currPosition.end.column;
+                        column = ((column-1) / 4 + 1) * 4 + 1;
                         state = State.WHITESPACE;
                         break;
                     case SPACE:
-                        symbols.add(createSymbol(currPosition, lexeme, C_INTEGER));
+                        symbols.add(createSymbol(line, column, lexeme, C_INTEGER));
+                        column++;
                         lexeme = "";
                         state = State.WHITESPACE;
                         break;
                     case NUMBER:
-                        currPosition.end.column += 1;
+                        column++;
                         lexeme += c;
                         break;
                     case STRSYM:
-                        symbols.add(createSymbol(currPosition, lexeme, C_INTEGER));
+                        symbols.add(createSymbol(line, column, lexeme, C_INTEGER));
+                        column++;
                         lexeme = "" + c;
                         state = State.STR_CONST;
                         break;
                     case SYMBOL:
-                        symbols.add(createSymbol(currPosition, lexeme, C_INTEGER));
+                        symbols.add(createSymbol(line, column, lexeme, C_INTEGER));
+                        column++;
                         lexeme = "" + c;
                         state = State.SYMBOL;
                         break;
 
                     case OTHER:
                     case NO_CATEGORY:
-                        Report.error(currPosition, "Bad symbol: " + c);
+                        Report.error(new Position(line, column, line, column), "Bad symbol: " + c);
                         break;
                     default:
-                        Report.error(currPosition, "Unhandled symbol: " + c);
+                        Report.error(new Position(line, column, line, column), "Unhandled symbol: " + c);
                         break;
                 }
                 break;
@@ -194,130 +200,153 @@ public class Lexer {
                 case WORD: // ab_asd?
                 switch (categorize(c)) {
                     case LETTER:
-                        currPosition.end.column += 1;
+                        column++;
                         lexeme += c;
                         break;
                     case NUMBER:
-                        currPosition.end.column += 1;
+                        column++;
                         lexeme += c;
                         break;
                     case SYMBOL: 
-                        symbols.add(createSymbol(currPosition, lexeme));
+                        symbols.add(createSymbol(line, column, lexeme));
+                        column++;
                         lexeme = "" + c; 
                         state = State.SYMBOL;
                         break;
                     case SPACE:
-                        symbols.add(createSymbol(currPosition, lexeme));
+                        symbols.add(createSymbol(line, column, lexeme));
+                        column++;
                         state = State.WHITESPACE;
                         lexeme = "";
                         break;
                     case TAB:
-                        symbols.add(createSymbol(currPosition, lexeme));
-                        currPosition.end.column += 3;
-                        currPosition.start.column = currPosition.end.column;
+                        symbols.add(createSymbol(line, column, lexeme));
+                        column = ((column-1) / 4 + 1) * 4 + 1;
                         state = State.WHITESPACE;
                         lexeme = "";
                         break;
                     case NEWLINE:
-                        symbols.add(createSymbol(currPosition, lexeme));
-                        currPosition.end.line += 1;
-                        currPosition.start.line = currPosition.end.line;
-                        currPosition.start.column = startPos;
-                        currPosition.end.column = startPos;
+                        symbols.add(createSymbol(line, column, lexeme));
+                        line++; column = startPos;
                         state = State.WHITESPACE;
                         lexeme = "";
                         break;
                     case STRSYM:
-                        symbols.add(createSymbol(currPosition, lexeme));
+                        symbols.add(createSymbol(line, column, lexeme));
+                        column++;
                         lexeme = "" + c;
                         state = State.STR_CONST;
                         break;
                     case COMMENT:
-                        symbols.add(createSymbol(currPosition, lexeme));
+                        symbols.add(createSymbol(line, column, lexeme));
+                        column++;
                         lexeme = "" + c;
                         state = State.COMMENT;
                         break;
 
                     case OTHER: // no others like ? in ID and KW ,...
                     case NO_CATEGORY:
-                        Report.error(currPosition, "Bad symbol: " + c);
+                        Report.error(new Position(line, column, line, column), "Bad symbol: " + c);
                         break;
                     default:
-                        Report.error(currPosition, "Unhandled symbol:" + c);
+                        Report.error(new Position(line, column, line, column), "Unhandled symbol:" + c);
                         break;
                 }
                 break;
 
                 case SYMBOL: // +   - =  == =< . , ...
-                    switch(categorize(c)) {
-                        case SYMBOL:
-                            if (c == '=' && lexeme.length() == 1 && "!=<>".contains(lexeme)) {
-                                lexeme += c;
-                                currPosition.end.column += 1;
-                            }
-                            else { // if symbol is length 2 or smth else, start a new one
-                                symbols.add(createSymbol(currPosition, lexeme, resolveLexeme(lexeme, state)));
-                                lexeme = "" + c;
-                            }
-                            break;
-                        case SPACE:
-                            symbols.add(createSymbol(currPosition, lexeme, resolveLexeme(lexeme, state)));
-                            lexeme = "";
-                            state = State.WHITESPACE;
-                            break;
-                        case TAB:
-                            symbols.add(createSymbol(currPosition, lexeme, resolveLexeme(lexeme, state)));
-                            currPosition.end.column += 3;
-                            currPosition.start.column = currPosition.end.column;
-                            lexeme = "";
-                            state = State.WHITESPACE;
-                            break;
-                        case NEWLINE:
-                            symbols.add(createSymbol(currPosition, lexeme, resolveLexeme(lexeme, state)));
-                            currPosition.end.line += 1;
-                            currPosition.start.line = currPosition.end.line;
-                            currPosition.end.column = startPos;
-                            currPosition.start.column = startPos;
-                            lexeme = "";
-                            state = State.WHITESPACE;
-                            break;
-                        case NUMBER:
-                            symbols.add(createSymbol(currPosition, lexeme, resolveLexeme(lexeme, state)));
+                switch(categorize(c)) {
+                    case SYMBOL:
+                        if (c == '=' && lexeme.length() == 1 && "!=<>".contains(lexeme)) {
+                            lexeme += c;
+                            column++;
+                        }
+                        else { // if symbol is length 2 or smth else, start a new one
+                            symbols.add(createSymbol(line, column, lexeme, resolveLexeme(lexeme, state)));
+                            column++;
                             lexeme = "" + c;
-                            state = State.NUM_CONST;
-                            break;
-                        case LETTER:
-                            symbols.add(createSymbol(currPosition, lexeme, resolveLexeme(lexeme, state)));
-                            lexeme = "" + c;
-                            state = State.WORD;
-                            break;
-                        case STRSYM:
-                            symbols.add(createSymbol(currPosition, lexeme, resolveLexeme(lexeme, state)));
-                            lexeme = "" + c;
-                            state = State.STR_CONST;
-                            break;
-                        case COMMENT:
-                            symbols.add(createSymbol(currPosition, lexeme, resolveLexeme(lexeme, state)));
-                            lexeme = "" + c;
-                            state = State.COMMENT;
-                            break;
+                        }
+                        break;
+                    case SPACE:
+                        symbols.add(createSymbol(line, column, lexeme, resolveLexeme(lexeme, state)));
+                        column++;
+                        lexeme = "";
+                        state = State.WHITESPACE;
+                        break;
+                    case TAB:
+                        symbols.add(createSymbol(line, column, lexeme, resolveLexeme(lexeme, state)));
+                        column = ((column-1) / 4 + 1) * 4 + 1;
+                        lexeme = "";
+                        state = State.WHITESPACE;
+                        break;
+                    case NEWLINE:
+                        symbols.add(createSymbol(line, column, lexeme, resolveLexeme(lexeme, state)));
+                        line++; column = startPos;
+                        lexeme = "";
+                        state = State.WHITESPACE;
+                        break;
+                    case NUMBER:
+                        symbols.add(createSymbol(line, column, lexeme, resolveLexeme(lexeme, state)));
+                        column++;
+                        lexeme = "" + c;
+                        state = State.NUM_CONST;
+                        break;
+                    case LETTER:
+                        symbols.add(createSymbol(line, column, lexeme, resolveLexeme(lexeme, state)));
+                        column++;
+                        lexeme = "" + c;
+                        state = State.WORD;
+                        break;
+                    case STRSYM:
+                        symbols.add(createSymbol(line, column, lexeme, resolveLexeme(lexeme, state)));
+                        column++;
+                        lexeme = "" + c;
+                        state = State.STR_CONST;
+                        break;
+                    case COMMENT:
+                        symbols.add(createSymbol(line, column, lexeme, resolveLexeme(lexeme, state)));
+                        column++;
+                        lexeme = "" + c;
+                        state = State.COMMENT;
+                        break;
 
-                        case OTHER:
-                        case NO_CATEGORY:
-                            Report.error(currPosition, "Bad symbol: " + c);
-                            break;
-                        default:
-                            Report.error(currPosition, "Unhandled symbol:" + c);
-                            break;
-                    }
+                    case OTHER:
+                    case NO_CATEGORY:
+                        Report.error(new Position(line, column, line, column), "Bad symbol: " + c);
+                        break;
+                    default:
+                        Report.error(new Position(line, column, line, column), "Unhandled symbol:" + c);
+                        break;
+                }
                 break;
+
+                case COMMENT:
+                switch (categorize(c)) {
+                    case NEWLINE:
+                        //symbols.add(createSymbol(line, column, lexeme, ));
+                        line++; column = startPos;
+                        lexeme = "";
+                        state = State.WHITESPACE;
+                        break;
+                    case TAB:
+                        //int tabs = 4 - ((16-1) % 4) ;
+                        column = ((column-1) / 4 + 1) * 4 + 1;
+                        //lexeme += c;
+                        //lexeme += " ".repeat(tabs);
+                        break;
+                    default:
+                        column++;
+                        //lexeme += c;
+                        break;
+                }
+                
 
                 default: // TODO remove
                     break;
 
             }
         }
-        symbols.add(new Symbol(currPosition.copy(), EOF, ""));
+        symbols.add(new Symbol(new Position(line, column, line, column), EOF, ""));
         return symbols;
     }
 
@@ -328,7 +357,7 @@ public class Lexer {
         SYMBOL,
         COMMENT, // # ... \n
         STR_CONST, // 'asdasd''asd?_!'
-        WHITESPACE,
+        WHITESPACE
     }
 
     private enum Category {
@@ -337,7 +366,7 @@ public class Lexer {
         SYMBOL, // + - * / % & | ! == != < > <= >= ( ) [ ] { } : ; . , =
         SPACE, // 32
         TAB, // 9
-        NEWLINE, // 10 13
+        NEWLINE, //
         STRSYM, // '
         COMMENT, // #
         OTHER, // other in stringconst
@@ -379,7 +408,7 @@ public class Lexer {
         return type;
     } 
 
-    private Symbol createSymbol(Position pos, String lexeme) {
+    private Symbol createSymbol(int line, int column, String lexeme) {
         TokenType type = keywordMapping.get(lexeme);
         if (type == null) { // determine type
             if (lexeme.equals("true") || lexeme.equals("false")) {
@@ -391,24 +420,19 @@ public class Lexer {
                 //Report.error(pos, "Can't resolve tokentype from lexeme: " + lexeme);
             }
         }
-        return createSymbol(pos, lexeme, type);
+        return createSymbol(line, column, lexeme, type);
     }
 
-    private Symbol createSymbol(Position pos, String lexeme, TokenType type) {
-        Symbol newSymbol = new Symbol(new Position(
-                                        pos.start.line, 
-                                        pos.start.column, 
-                                        pos.start.line, 
-                                        pos.start.column+lexeme.length()-1), 
-                                            type, lexeme);
-        pos.end.column = pos.start.column+lexeme.length(); // because above ^^^^ +1x
-        pos.start.column = pos.end.column;
-        return newSymbol;
+    private Symbol createSymbol(int line, int column, String lexeme, TokenType type) {
+        Location startLocation = new Location(line, column - lexeme.length());
+        Location endLocation = new Location(line, column - 1);
+        Position position = new Position(startLocation, endLocation);
+        return new Symbol(position, type, lexeme);
     }
 
     private Category categorize(char c) {
         if (c == 9) return Category.TAB;
-        else if (c == 10 || c == 13) return Category.NEWLINE;
+        else if (c == 10 ) return Category.NEWLINE;
         else if (c == 32) return Category.SPACE;
         else if (c == 35) return Category.COMMENT;
         else if (c == 39) return Category.STRSYM;

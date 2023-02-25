@@ -11,12 +11,12 @@ public class Position {
     /**
      * Začetna lokacija območja.
      */
-    public Location start;
+    public final Location start;
 
     /**
      * Končna lokacija območja.
      */
-    public Location end;
+    public final Location end;
 
     /**
      * Ustvari novo območje.
@@ -95,12 +95,12 @@ public class Position {
         /**
          * Vrstica.
          */
-        public int line;
+        public final int line;
 
         /**
          * Stolpec.
          */
-        public int column;
+        public final int column;
 
         /**
          * Ustvari novo lokacijo.

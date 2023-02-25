@@ -1,9 +1,9 @@
+logical true false
 integer X = 5+
 integer Y == 10+
 x123z <= 5-
-5<6 Tab T   tab     tab2 1:5, 2:5, 3:5, 4:5, 5:9, (floor((pos-1)/4)  + 1) * 4  + 1
-
+5<6 Tab T   tab
+haha#comment tralala  gha	bla
 1>=1
-2=>2
-a;=10
+
 
