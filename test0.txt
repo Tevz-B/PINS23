@@ -1,9 +1,10 @@
-logical true false
-integer X = 5+
-integer Y == 10+
-x123z <= 5-
-5<6 Tab T   tab
-haha#comment tralala  gha	bla
-1>=1
+str = '''hahahabu'''
+'bla''hehe''bu''he''hihi''a'
+#str2 = '''hehe''';
+#logical true false
+#integer Y == 10+
+#haha#comment tralala  gha	bla
+#1>=1
+
 
 

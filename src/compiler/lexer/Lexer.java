@@ -72,10 +72,16 @@ public class Lexer {
         String lexeme = "";
         State state = State.START;
         char c = 0;
+
+        boolean skipChar = false;
+        int lexemeOffset = 0;
   
 
         for (int pos = 0; pos < source.length(); ++pos) {
-            
+            if (skipChar) {
+                skipChar = false;
+                continue;
+            }
             c = source.charAt(pos);
 
             if (c == 13 ) { // skip CR
@@ -119,7 +125,8 @@ public class Lexer {
                         break;
                     case STRSYM: 
                         column++;
-                        lexeme += c;
+                        //lexeme += c;
+                        lexeme = ""; lexemeOffset++;
                         state = State.STR_CONST;
                         break;
                     case COMMENT:
@@ -177,7 +184,7 @@ public class Lexer {
                     case STRSYM:
                         symbols.add(createSymbol(line, column, lexeme, C_INTEGER));
                         column++;
-                        lexeme = "" + c;
+                        lexeme = ""; lexemeOffset++;
                         state = State.STR_CONST;
                         break;
                     case SYMBOL:
@@ -234,7 +241,7 @@ public class Lexer {
                     case STRSYM:
                         symbols.add(createSymbol(line, column, lexeme));
                         column++;
-                        lexeme = "" + c;
+                        lexeme = ""; lexemeOffset++;
                         state = State.STR_CONST;
                         break;
                     case COMMENT:
@@ -300,7 +307,7 @@ public class Lexer {
                     case STRSYM:
                         symbols.add(createSymbol(line, column, lexeme, resolveLexeme(lexeme, state)));
                         column++;
-                        lexeme = "" + c;
+                        lexeme = ""; lexemeOffset++;
                         state = State.STR_CONST;
                         break;
                     case COMMENT:
@@ -339,9 +346,52 @@ public class Lexer {
                         //lexeme += c;
                         break;
                 }
-                
+                break;
+                case STR_CONST:
+                switch (categorize(c)) {
+                    case STRSYM:
+                        lexemeOffset++;
+                        if (pos+1 < source.length()) { 
+                            if (source.charAt(pos+1) == 39) { // escaped ', continue
+                                column += 2; 
+                                skipChar = true;    
+                                lexeme += c;
+                            } else { // end str const
+                                column++;
+                                symbols.add(createSymbol(line, column, lexeme, C_STRING, lexemeOffset)); // lexeme len + escaped
+                                lexemeOffset = 0;
+                                lexeme = "";
+                                state = State.WHITESPACE;
+                            }
+                        } else { // end str const
+                            column++;
+                            symbols.add(createSymbol(line, column, lexeme, C_STRING, lexemeOffset)); // lexeme len + escaped
+                            lexemeOffset = 0;
+                            lexeme = "";
+                            state = State.WHITESPACE;
+                        }
+                        break;
+                    case LETTER:
+                    case NUMBER:
+                    case OTHER:
+                    case TAB:
+                    case SPACE:
+                    case SYMBOL:
+                    case COMMENT:
+                        column++;
+                        lexeme += c;
+                        break;
+                    case NEWLINE:
+                        Report.error(new Position(line, column, line, column), "Wrong symbol inside string const. String const not closed.");
+                        break;
+                    case NO_CATEGORY:
+                        Report.error(new Position(line, column, line, column),  "Bad symbol: " + c);
+                        break;
+                }
+                break;
 
                 default: // TODO remove
+                    Report.error("Got unhandled State");
                     break;
 
             }
@@ -425,6 +475,13 @@ public class Lexer {
 
     private Symbol createSymbol(int line, int column, String lexeme, TokenType type) {
         Location startLocation = new Location(line, column - lexeme.length());
+        Location endLocation = new Location(line, column - 1);
+        Position position = new Position(startLocation, endLocation);
+        return new Symbol(position, type, lexeme);
+    }
+
+    private Symbol createSymbol(int line, int column, String lexeme, TokenType type, int endOffset) {
+        Location startLocation = new Location(line, column - lexeme.length() - endOffset);
         Location endLocation = new Location(line, column - 1);
         Position position = new Position(startLocation, endLocation);
         return new Symbol(position, type, lexeme);
