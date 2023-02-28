@@ -74,15 +74,14 @@ public class Lexer {
         char c = 0;
 
         boolean skipChar = false;
-        int lexemeOffset = 0;
-  
+        int lexemeOffset = 0;  
 
-        for (int pos = 0; pos < source.length(); ++pos) {
+        for (int pos = 0; pos <= source.length(); ++pos) {
             if (skipChar) {
                 skipChar = false;
                 continue;
             }
-            c = source.charAt(pos);
+            c = pos == source.length() ? 32 : source.charAt(pos); // add space in place of EOF
 
             if (c == 13 ) { // skip CR
                 if (pos + 1 < source.length() && source.charAt(pos+1) == 10)
@@ -374,7 +373,6 @@ public class Lexer {
                     case LETTER:
                     case NUMBER:
                     case OTHER:
-                    case TAB:
                     case SPACE:
                     case SYMBOL:
                     case COMMENT:
@@ -382,6 +380,7 @@ public class Lexer {
                         lexeme += c;
                         break;
                     case NEWLINE:
+                    case TAB:
                         Report.error(new Position(line, column, line, column), "Wrong symbol inside string const. String const not closed.");
                         break;
                     case NO_CATEGORY:

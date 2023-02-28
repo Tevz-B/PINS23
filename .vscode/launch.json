@@ -6,6 +6,14 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch PINS Tests MAC",
+            "request": "launch",
+            "mainClass": "TestLex",
+            "projectName": "PINSCompiler_a1b3400d"
+        },
+
+        {
+            "type": "java",
             "name": "Launch PINS Main MAC",
             "request": "launch",
             "mainClass": "Main",

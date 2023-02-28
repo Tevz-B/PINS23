@@ -1,10 +1,9 @@
-str = '''hahahabu'''
-'bla''hehe''bu''he''hihi''a'
-#str2 = '''hehe''';
-#logical true false
-#integer Y == 10+
-#haha#comment tralala  gha	bla
-#1>=1
+# preprost program
+num:integer = 2;
+zmnozek:integer = num*num;
+sum:integer = 0;
 
-
-
+# je to zanka?
+for (i:integer = 0; (i > zmnozek) == false; i = i + 1) {
+    sum = sum + i;
+}
