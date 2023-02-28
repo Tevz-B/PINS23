@@ -7,3 +7,5 @@ sum:integer = 0;
 for (i:integer = 0; (i > zmnozek) == false; i = i + 1) {
     sum = sum + i;
 }
+'Haha!'
+!#asd

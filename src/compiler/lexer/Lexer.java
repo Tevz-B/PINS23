@@ -70,7 +70,7 @@ public class Lexer {
         int line = startPos;        
 
         String lexeme = "";
-        State state = State.START;
+        State state = State.WHITESPACE;
         char c = 0;
 
         boolean skipChar = false;
@@ -81,7 +81,7 @@ public class Lexer {
                 skipChar = false;
                 continue;
             }
-            c = pos == source.length() ? 32 : source.charAt(pos); // add space in place of EOF
+            c = pos == source.length() ? '\n' : source.charAt(pos); // add newline in place of EOF
 
             if (c == 13 ) { // skip CR
                 if (pos + 1 < source.length() && source.charAt(pos+1) == 10)
@@ -91,22 +91,21 @@ public class Lexer {
             }
 
             switch (state) {
-                case START:
                 case WHITESPACE:
                 switch (categorize(c)) {
                     case LETTER:
                         column++;
-                        lexeme += c;
+                        lexeme = "" + c;
                         state = State.WORD;
                         break;
                     case NUMBER: 
                         column++;
-                        lexeme += c;
+                        lexeme = "" + c;
                         state = State.NUM_CONST;
                         break;
                     case SYMBOL: 
                         column++;
-                        lexeme += c;
+                        lexeme = "" + c;
                         state = State.SYMBOL;
                         break;
                     case SPACE:
@@ -130,7 +129,7 @@ public class Lexer {
                         break;
                     case COMMENT:
                         column++;
-                        lexeme += c;
+                        lexeme = "" + c;
                         state = State.COMMENT;
                         break;
                     
@@ -380,8 +379,10 @@ public class Lexer {
                         lexeme += c;
                         break;
                     case NEWLINE:
+                        Report.error(new Position(line, column, line, column), "String const not closed.");
+                        break;
                     case TAB:
-                        Report.error(new Position(line, column, line, column), "Wrong symbol inside string const. String const not closed.");
+                    Report.error(new Position(line, column, line, column), "Tab not allowed inside string const.");
                         break;
                     case NO_CATEGORY:
                         Report.error(new Position(line, column, line, column),  "Bad symbol: " + c);
@@ -395,15 +396,14 @@ public class Lexer {
 
             }
         }
-        symbols.add(new Symbol(new Position(line, column, line, column), EOF, ""));
+        symbols.add(new Symbol(new Position(line-1, column, line, column), EOF, "EOF"));
         return symbols;
     }
 
     private enum State {
-        START,
         NUM_CONST, // int=0123
         WORD, // ID, KW, AT, true, false
-        SYMBOL,
+        SYMBOL, // +-*/
         COMMENT, // # ... \n
         STR_CONST, // 'asdasd''asd?_!'
         WHITESPACE
