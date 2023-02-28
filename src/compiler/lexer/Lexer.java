@@ -17,6 +17,17 @@ import java.util.Map;
 import common.Report;
 
 public class Lexer {
+    /*
+     * Stevilcenje: 
+     *     inclusiveNumbering:
+     *         true:  [8:17-8:18] IDENTIFIER:i
+     *         false: [8:17] IDENTIFIER:i
+     *     startPos:
+     *         1:     [1:1] IDENTIFIER:i
+     *         0:     [0:0] IDENTIFIER:i
+     */
+    private static final boolean inclusiveNumbering = true; 
+    private static final int startPos = 1;
     /**
      * Izvorna koda.
      */
@@ -55,26 +66,16 @@ public class Lexer {
      * 
      * @return seznam leksikalnih simbolov.
      */
-    // '''' je en narekovaj v narekovajih "'"
-    // 'bla' je string const
-    // Pravilo: niz more biti zakljucen: ''' je napaka
-    // Pravilo: vedno dodamo EOF (zadnji simbol)
-    // Pravilo: najdaljse ujemanje - pozresno
-    // Pravilo: tabulator je premik za 4
     public List<Symbol> scan() {
         var symbols = new ArrayList<Symbol>();
-    
-        // todo: implementacija leksikalne analize
-        final int startPos = 1;
-        int column = startPos;
+        
+        int column = startPos; // vrstice in stolpce stejemo od 1
         int line = startPos;        
-
         String lexeme = "";
-        State state = State.WHITESPACE;
+        State state = State.WHITESPACE; // zacetno stanje
         char c = 0;
-
-        boolean skipChar = false;
-        int lexemeOffset = 0;  
+        boolean skipChar = false; // preskoci naslednji character (npr. pri '' se vnaprej pogleda in potem preskoci)
+        int lexemeOffset = 0;  // za zamik pozicije pri string_const
 
         for (int pos = 0; pos <= source.length(); ++pos) {
             if (skipChar) {
@@ -83,11 +84,11 @@ public class Lexer {
             }
             c = pos == source.length() ? '\n' : source.charAt(pos); // add newline in place of EOF
 
-            if (c == 13 ) { // skip CR
+            if (c == 13 ) { // skip CR character and check if together with LF
                 if (pos + 1 < source.length() && source.charAt(pos+1) == 10)
                     continue;
                 else 
-                    Report.error(new Position(line, column, line, column), "CR character not followed by LF");
+                    Report.error(new Position(line, column, line, column), "LEXER: CR character not followed by LF");
             }
 
             switch (state) {
@@ -113,7 +114,7 @@ public class Lexer {
                         state = State.WHITESPACE;
                         break;
                     case TAB: 
-                        column = ((column-1) / 4 + 1) * 4 + 1; // ((currPosition-1)/4 + 1 ) * 4 + 2;
+                        column = ((column-1) / 4 + 1) * 4 + 1;
                         state = State.WHITESPACE;
                         break;
                     case NEWLINE:
@@ -135,10 +136,10 @@ public class Lexer {
                     
                     case OTHER:
                     case NO_CATEGORY:
-                        Report.error(new Position(line, column, line, column), "Bad symbol " + c);
+                        Report.error(new Position(line, column, line, column), "LEXER: Bad symbol " + c);
                         break;
                     default:
-                        Report.error(new Position(line, column, line, column), "Unhandled symbol:" + c);
+                        Report.error(new Position(line, column, line, column), "LEXER: Unhandled symbol:" + c);
                         break;
                 }
                 break;
@@ -194,15 +195,15 @@ public class Lexer {
 
                     case OTHER:
                     case NO_CATEGORY:
-                        Report.error(new Position(line, column, line, column), "Bad symbol: " + c);
+                        Report.error(new Position(line, column, line, column), "LEXER: Bad symbol: " + c);
                         break;
                     default:
-                        Report.error(new Position(line, column, line, column), "Unhandled symbol: " + c);
+                        Report.error(new Position(line, column, line, column), "LEXER: Unhandled symbol: " + c);
                         break;
                 }
                 break;
 
-                case WORD: // ab_asd?
+                case WORD:
                 switch (categorize(c)) {
                     case LETTER:
                         column++;
@@ -251,10 +252,10 @@ public class Lexer {
 
                     case OTHER: // no others like ? in ID and KW ,...
                     case NO_CATEGORY:
-                        Report.error(new Position(line, column, line, column), "Bad symbol: " + c);
+                        Report.error(new Position(line, column, line, column), "LEXER: Bad symbol: " + c);
                         break;
                     default:
-                        Report.error(new Position(line, column, line, column), "Unhandled symbol:" + c);
+                        Report.error(new Position(line, column, line, column), "LEXER: Unhandled symbol:" + c);
                         break;
                 }
                 break;
@@ -317,10 +318,10 @@ public class Lexer {
 
                     case OTHER:
                     case NO_CATEGORY:
-                        Report.error(new Position(line, column, line, column), "Bad symbol: " + c);
+                        Report.error(new Position(line, column, line, column), "LEXER: Bad symbol: " + c);
                         break;
                     default:
-                        Report.error(new Position(line, column, line, column), "Unhandled symbol:" + c);
+                        Report.error(new Position(line, column, line, column), "LEXER: Unhandled symbol:" + c);
                         break;
                 }
                 break;
@@ -328,20 +329,15 @@ public class Lexer {
                 case COMMENT:
                 switch (categorize(c)) {
                     case NEWLINE:
-                        //symbols.add(createSymbol(line, column, lexeme, ));
                         line++; column = startPos;
                         lexeme = "";
                         state = State.WHITESPACE;
                         break;
                     case TAB:
-                        //int tabs = 4 - ((16-1) % 4) ;
                         column = ((column-1) / 4 + 1) * 4 + 1;
-                        //lexeme += c;
-                        //lexeme += " ".repeat(tabs);
                         break;
                     default:
                         column++;
-                        //lexeme += c;
                         break;
                 }
                 break;
@@ -379,29 +375,24 @@ public class Lexer {
                         lexeme += c;
                         break;
                     case NEWLINE:
-                        Report.error(new Position(line, column, line, column), "String const not closed.");
+                        Report.error(new Position(line, column, line, column), "LEXER: String const not closed.");
                         break;
                     case TAB:
-                    Report.error(new Position(line, column, line, column), "Tab not allowed inside string const.");
+                    Report.error(new Position(line, column, line, column), "LEXER: Tab not allowed inside string const.");
                         break;
                     case NO_CATEGORY:
-                        Report.error(new Position(line, column, line, column),  "Bad symbol: " + c);
+                        Report.error(new Position(line, column, line, column),  "LEXER: Bad symbol: " + c);
                         break;
                 }
                 break;
-
-                default: // TODO remove
-                    Report.error("Got unhandled State");
-                    break;
-
             }
         }
-        symbols.add(new Symbol(new Position(line-1, column, line, column), EOF, "EOF"));
+        symbols.add(new Symbol(new Position(line-1, column, line, column), EOF, "$"));
         return symbols;
     }
 
     private enum State {
-        NUM_CONST, // int=0123
+        NUM_CONST, // 0123
         WORD, // ID, KW, AT, true, false
         SYMBOL, // +-*/
         COMMENT, // # ... \n
@@ -415,11 +406,11 @@ public class Lexer {
         SYMBOL, // + - * / % & | ! == != < > <= >= ( ) [ ] { } : ; . , =
         SPACE, // 32
         TAB, // 9
-        NEWLINE, //
+        NEWLINE, // \n, handle \r\n separatly
         STRSYM, // '
         COMMENT, // #
         OTHER, // other in stringconst
-        NO_CATEGORY // code is not in correct range
+        NO_CATEGORY // char code is not in correct range
     }
 
     private TokenType resolveLexeme(String lexeme, State state) {
@@ -463,10 +454,8 @@ public class Lexer {
             if (lexeme.equals("true") || lexeme.equals("false")) {
                 type = C_LOGICAL;
             }
-            
             else {
                 type = IDENTIFIER;
-                //Report.error(pos, "Can't resolve tokentype from lexeme: " + lexeme);
             }
         }
         return createSymbol(line, column, lexeme, type);
@@ -474,14 +463,14 @@ public class Lexer {
 
     private Symbol createSymbol(int line, int column, String lexeme, TokenType type) {
         Location startLocation = new Location(line, column - lexeme.length());
-        Location endLocation = new Location(line, column - 1);
+        Location endLocation = new Location(line, column - (inclusiveNumbering ? 0 : 1));
         Position position = new Position(startLocation, endLocation);
         return new Symbol(position, type, lexeme);
     }
 
     private Symbol createSymbol(int line, int column, String lexeme, TokenType type, int endOffset) {
         Location startLocation = new Location(line, column - lexeme.length() - endOffset);
-        Location endLocation = new Location(line, column - 1);
+        Location endLocation = new Location(line, column - (inclusiveNumbering ? 0 : 1));
         Position position = new Position(startLocation, endLocation);
         return new Symbol(position, type, lexeme);
     }
