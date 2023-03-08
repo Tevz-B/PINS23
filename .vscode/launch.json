@@ -6,19 +6,26 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Launch PINS Tests MAC",
+            "name": "Test PINS  MAC",
             "request": "launch",
             "mainClass": "TestLex",
             "projectName": "PINSCompiler_a1b3400d"
         },
-
         {
             "type": "java",
             "name": "Launch PINS Main MAC",
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINSCompiler_a1b3400d",
-            "args": ["PINS","./test0.txt","--dump", "LEX" ] // ,"--dump", "LEX"
+            "args": ["PINS","./test0.txt","--dump", "SYN", "--exec", "SYN" ]
+        },
+        {
+            "type": "java",
+            "name": "Launch PINS Main MAC LEX",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "PINSCompiler_a1b3400d",
+            "args": ["PINS","./test0.txt","--dump", "LEX" ] 
         },
         {
             "type": "java",
@@ -26,7 +33,15 @@
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINS23_76a31c49",
-            "args": ["PINS","./test0.txt","--dump", "LEX" ] // ,"--dump", "LEX"
+            "args": ["PINS","./test0.txt","--dump", "LEX" ]
+        },
+        {
+            "type": "java",
+            "name": "help PINS",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "PINSCompiler_a1b3400d",
+            "args": ["PINS"] 
         }
     ]
 }
