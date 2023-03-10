@@ -63,22 +63,24 @@ public class Parser {
 	        definitions2 -> ";" definition definitions2 .
      */
 
-    void parseDefinitions() {
+    private void parseDefinitions() {
         dump("definitions -> definition definitions2");
         parseDefinition();
 	    parseDefinitions2();
     }
 
-    void parseDefinitions2() {
+    private void parseDefinitions2() {
         switch(cToken()) {
         case OP_SEMICOLON: 
             dump("definitions2 -> ; definition definitions2");
+            skip();
             parseDefinition();
             parseDefinitions2();
             break;
         case EOF:
             // end of definitions
-            dump("definitions2 -> $");
+            dump("definitions2 -> e");
+            dump("$ -> $"); // ?
             skip();
             // EOF: end of file $
             break;
@@ -87,7 +89,7 @@ public class Parser {
         }
     }
 
-    void parseDefinition() {
+    private void parseDefinition() {
         if( check( KW_VAR ) ) {
             dump("definition -> variable_definition");
             skip();
@@ -107,7 +109,7 @@ public class Parser {
         }
     }
 
-    void parseVariableDefinition() {
+    private void parseVariableDefinition() {
         if (check(IDENTIFIER)) {
             checkErr(1, OP_COLON);
             dump("variable_definition -> var identifier : type");
@@ -118,7 +120,7 @@ public class Parser {
         }
     }
 
-    void parseType() {
+    private void parseType() {
         switch(cToken()) {
             case IDENTIFIER:
                 dump("type -> identifier");
@@ -153,12 +155,179 @@ public class Parser {
         }
     }
 
-    void parseFunctionDefinition() {
-        // TODO
+    private void parseFunctionDefinition() {
+        checkErr(0, IDENTIFIER);
+        checkErr(1, OP_LPARENT);
+        dump("function_definition -> fun identifier ( parameters ) : type = expression");
+        skip(2);
+        parseParameters();
+        checkErr(0, OP_RPARENT);
+        checkErr(1, OP_COLON);
+        skip(2);
+        parseType();
+        checkErr(0, OP_ASSIGN);
+        skip();
+        parseExpression();
     }
 
-    void parseTypeDefinition() {
-        // TODO
+    private void parseTypeDefinition() {
+        checkErr(0, IDENTIFIER);
+        checkErr(1, OP_COLON);
+        dump("type_definition -> typ identifier : type");
+        skip(2);
+        parseType();
+    }
+
+    private void parseParameters() {
+        dump("parameters -> parameter parameters2");
+        parseParameter();
+        parseParameters2();
+    }
+
+    private void parseParameter() {
+        checkErr(0, IDENTIFIER);
+        checkErr(1, OP_COLON);
+        dump("parameter -> identifier : type");
+        skip(2);
+        parseType();
+    }
+
+    private void parseParameters2() {
+        if (check(OP_COMMA)) {
+            dump("parameters2 -> , parameter parameters2");
+            skip();
+            parseParameter();
+            parseParameters2();
+        } 
+        else {
+            dump("parameters2 -> e");
+            // end of parameters
+        }
+    }
+
+    private void parseExpression() {
+        dump("expression -> logical_ior_expression expression2");
+        parseLogicalIorExpression();
+        parseExpression2();
+    }
+
+    private void parseExpression2() {
+        if (check(OP_LBRACE)) {
+            checkErr(1, KW_WHERE);
+            dump("expression2 -> { where definitions }");
+            skip(2);
+            parseDefinitions();
+        } 
+        else {
+            dump("expression2 -> e");
+            // end of expressions
+        }
+    }
+
+    private void parseLogicalIorExpression() {
+        dump("logical_ior_expression -> logical_and_expression logical_ior_expression2");
+        parseLogicalAndExpression();
+        parseLogicalIorExpression2();
+    }
+
+    private void parseLogicalIorExpression2() {
+        if (check(OP_OR)) {
+            dump("logical_ior_expression2 -> | logical_and_expression logical_ior_expression2");
+            skip();
+            parseLogicalAndExpression();
+            parseLogicalIorExpression2();
+        }
+        else {
+            dump("logical_ior_expression2 ->  e");
+        }
+    }
+
+    private void parseLogicalAndExpression() {
+        dump("logical_and_expression -> compare_expression logical_and_expression2");
+        parseCompareExpression();
+        parseLogicalAndExpression2();
+    }
+
+    private void parseLogicalAndExpression2() {
+        if (check(OP_AND)) {
+            dump("logical_and_expression2 -> & compare_expression logical_and_expression2");
+            skip();
+            parseCompareExpression();
+            parseLogicalAndExpression2();
+        }
+        else {
+            dump("logical_and_expression2 -> e");
+        }
+    }
+
+    private void parseCompareExpression() {
+        dump("compare_expression -> additive_expression compare_expression2");
+        parseAdditiveExpression();
+        parseCompareExpression2();
+    }
+
+    private void parseCompareExpression2() {
+        switch (cToken()) {
+            case OP_EQ:
+                dump("compare_expression2 ->  == additive_expression");
+                skip();
+                parseAdditiveExpression();
+                break;
+            case OP_NEQ:
+                dump("compare_expression2 ->  != additive_expression");
+                skip();
+                parseAdditiveExpression();
+                break;
+            case OP_LT:
+                dump("compare_expression2 ->  < additive_expression");
+                skip();
+                parseAdditiveExpression();
+                break;
+            case OP_GT:
+                dump("compare_expression2 ->  > additive_expression");
+                skip();
+                parseAdditiveExpression();
+                break;
+            case OP_LEQ:
+                dump("compare_expression2 ->  <= additive_expression");
+                skip();
+                parseAdditiveExpression();
+                break;
+            case OP_GEQ:
+                dump("compare_expression2 ->  >= additive_expression");
+                skip();
+                parseAdditiveExpression();
+                break;
+            default:
+                dump("compare_expression2 ->  e");
+                break;
+        }
+    }
+
+    private void parseAdditiveExpression() {
+        dump("additive_expression -> multiplicative_expression additive_expression2");
+        parseMultiplicativeExpression();
+        parseAdditiveExpression2();
+    }
+
+    private void parseAdditiveExpression2() {
+        if (check(OP_ADD)) {
+            dump("additive_expression2 -> + multiplicative_expression");
+            skip();
+            parseMultiplicativeExpression();
+        }
+        else if (check(OP_SUB)) {
+            dump("additive_expression2 -> - multiplicative_expression");
+            skip();
+            parseMultiplicativeExpression();
+        }
+        else {
+            dump("additive_expression2 ->  e");
+        }
+    }
+
+    private void parseMultiplicativeExpression() {
+
     }
 
     void skip(int num) {
