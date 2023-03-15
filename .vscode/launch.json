@@ -34,7 +34,7 @@
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINS23_76a31c49",
-            "args": ["PINS","./test0.txt","--dump", "LEX" ]
+            "args": ["PINS","./test0.txt","--dump", "SYN", "--exec", "SYN" ]
         },
         {
             "type": "java",

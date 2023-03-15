@@ -3,7 +3,7 @@
  * @Description: Sintaksni analizator.
  */
 
-package compiler.parser;
+package compiler.parser2;
 
 import static compiler.lexer.TokenType.*;
 import static common.RequireNonNull.requireNonNull;

@@ -58,6 +58,7 @@ public class Parser {
      */
 
     private void parseSource() {
+        dump("source -> definitions");
         parseDefinitions();
     }
 

@@ -1,9 +1,9 @@
-
-var x:integer;
-typ charStar : string;
-var ar1 : arr[5]string;
-var ar2 : arr[1]integer;
-var ar3 : arr[3]logical;
-fun foo(num1:integer, str:string):integer = {x = 3};
-
-
+fun prestejCrke (i:integer): integer = {
+    while (i < j[2]):
+        {
+            for i = 10, i < 100, i + 1:
+                {
+                    if i == 69 then print(i)
+                }
+        }
+}
