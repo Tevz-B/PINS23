@@ -1,5 +1,5 @@
 /**
- * @Author: basaj
+ * @Author: turk
  * @Description: Sintaksni analizator.
  */
 
@@ -19,7 +19,7 @@ import compiler.lexer.Position;
 import compiler.lexer.Symbol;
 import compiler.lexer.TokenType;
 
-public class Parser {
+public class Parser2 {
     /**
      * Seznam leksikalnih simbolov.
      */
@@ -36,7 +36,7 @@ public class Parser {
      */
     private final Optional<PrintStream> productionsOutputStream;
 
-    public Parser(List<Symbol> symbols, Optional<PrintStream> productionsOutputStream) {
+    public Parser2(List<Symbol> symbols, Optional<PrintStream> productionsOutputStream) {
         requireNonNull(symbols, productionsOutputStream);
         this.symbols = symbols;
         this.productionsOutputStream = productionsOutputStream;
@@ -119,7 +119,7 @@ public class Parser {
         }
     }
 
-    private void parseType() {
+    private Type parseType() {
         switch(cToken()) {
             case IDENTIFIER:
                 dump("type -> identifier");
@@ -163,7 +163,7 @@ public class Parser {
         checkErr(0, OP_RPARENT);
         checkErr(1, OP_COLON);
         skip(2);
-        parseType();
+        var type = parseType();
         checkErr(0, OP_ASSIGN);
         skip();
         parseExpression();
@@ -204,7 +204,7 @@ public class Parser {
         }
     }
 
-    private void parseExpression() {
+    private Expression parseExpression() {
         dump("expression -> logical_ior_expression expression2");
         parseLogicalIorExpression();
         parseExpression2();
@@ -223,18 +223,20 @@ public class Parser {
         }
     }
 
-    private void parseLogicalIorExpression() {
+    private Expression parseLogicalIorExpression() {
         dump("logical_ior_expression -> logical_and_expression logical_ior_expression2");
-        parseLogicalAndExpression();
-        parseLogicalIorExpression2();
+        var e1  = parseLogicalAndExpression();
+        var e2 = parseLogicalIorExpression2(e1);
+        return e2;
     }
 
     private void parseLogicalIorExpression2() {
         if (check(OP_OR)) {
             dump("logical_ior_expression2 -> | logical_and_expression logical_ior_expression2");
             skip();
-            parseLogicalAndExpression();
-            parseLogicalIorExpression2();
+            var right = parseLogicalAndExpression();
+            var bin = new Binary(...);
+            parseLogicalIorExpression2(bin);
         }
         else {
             dump("logical_ior_expression2 -> e");
@@ -550,7 +552,7 @@ public class Parser {
 
     private void parseExpressions() {
         dump("expressions -> expression expressions2");
-        parseExpression();
+        var exp = parseExpression();
         parseExpressions2();
     }
 
@@ -619,4 +621,24 @@ public class Parser {
             productionsOutputStream.get().println(production);
         }
     }
+}
+
+indent+= 2;
+
+left.accept(this);
+right.accept(this);
+
+indent -= 2;
+
+correct:
+
+inNewScope(()-> {
+    left.accept();
+    right.accept();
+})
+
+inNewScope(VoidOperator op) {
+    indent += 2;
+    op.apply();
+    indent -= 2;
 }

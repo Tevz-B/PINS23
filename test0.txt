@@ -4,5 +4,6 @@ typ charStar : string;
 var ar1 : arr[5]string;
 var ar2 : arr[1]integer;
 var ar3 : arr[3]logical;
-fun foo(num1:integer, str:string):integer = 
+fun foo(num1:integer, str:string):integer = {x = 3};
+
 
