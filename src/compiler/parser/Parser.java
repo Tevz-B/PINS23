@@ -22,14 +22,17 @@ import compiler.lexer.Symbol;
 import compiler.lexer.TokenType;
 import compiler.parser.ast.*;
 import compiler.parser.ast.def.*;
+import compiler.parser.ast.def.FunDef.Parameter;
 import compiler.parser.ast.expr.*;
 import compiler.parser.ast.type.*;
+
+// CHECK for BUGS: definitions inside { where definitions }
 
 public class Parser {
     /**
      * Seznam leksikalnih simbolov.
      */
-    private final List<Symbol> symbols;
+    // private final List<Symbol> symbols;
 
     /**
      * Sklad leksikalnih simbolov.
@@ -44,9 +47,8 @@ public class Parser {
 
     public Parser(List<Symbol> symbols, Optional<PrintStream> productionsOutputStream) {
         requireNonNull(symbols, productionsOutputStream);
-        this.symbols = symbols;
+        // this.symbols = symbols;
         this.productionsOutputStream = productionsOutputStream;
-
         this.stack = new Stack<Symbol>();
         Collections.reverse(symbols);
         stack.addAll(symbols);
@@ -58,7 +60,20 @@ public class Parser {
 
     private Ast parseSource() {
         dump("source -> definitions");
-        return parseDefinitions();
+        Ast ast = parseDefinitions();
+        if( ast == null) {
+            err("No definition in source code!");
+        }
+        if (check(EOF)) {
+            // end of definitions
+            dump("$ -> $");
+            skip();
+            // EOF: end of file $
+        }
+        else {
+            err("Expected EOF at end of definitions.");
+        }
+        return ast;
     }
 
     private Defs parseDefinitions() {
@@ -94,53 +109,58 @@ public class Parser {
             }
             res = new Defs(newPos(startPos, endPos), defs);
             break;
-        case EOF:
-            // end of definitions
-            dump("definitions2 -> e");
-            dump("$ -> $"); // ?
-            skip();
-            // EOF: end of file $
-            break;
         default:
-            err("Expected ';' or EOF token");
+            dump("definitions2 -> e");
+            break;
         }
         return res;
     }
 
-    private Def parseDefinition() {
+    private Def parseDefinition() { // TODO
         Def res = null;
+        Position startPos = cPos();
         if( check( KW_VAR ) ) {
             dump("definition -> variable_definition");
             skip();
-            parseVariableDefinition();
+            VarDef t = parseVariableDefinition();
+            res = new VarDef(newPos(startPos, t.position), t.name, t.type);
         }
         else if( check( KW_FUN ) ) {
             dump("definition -> function_definition");
             skip();
-            parseFunctionDefinition();
+            FunDef t = parseFunctionDefinition();
+            res = new FunDef(newPos(startPos, t.position), t.name, t.parameters, t.type, t.body);
         }
         else if( check( KW_TYP ) ) {
             dump("definition -> type_definition");
-            Position startPos = cPos();
             skip();
             TypeDef t = parseTypeDefinition();
             // correct position to include TYP keyword
             res = new TypeDef( newPos(startPos, t.position), t.name, t.type );
-        } else {
-            err("Expected 'fun', 'typ' or 'var' keyword as definition");
+        } 
+        else {
+            if( check( EOF ) ) {
+                err("Delete extra ';' at the end of file.");
+            }
+            err("Expected 'fun', 'typ' or 'var' keyword as definition.");
         }
         return res;
     }
 
-    private void parseVariableDefinition() {
+    private VarDef parseVariableDefinition() {
+        VarDef res = null;
         if (check(IDENTIFIER)) {
+            Position startPos = cPos();
+            String name = cLex();
             checkErr(1, OP_COLON);
             dump("variable_definition -> var identifier : type");
             skip(2);
-            parseType();
+            Type type = parseType();
+            res = new VarDef(newPos(startPos, type.position), name, type);
         } else {
             err("Expected identifier as variable definition");
         }
+        return res;
     }
 
     private Type parseType() {
@@ -155,19 +175,16 @@ public class Parser {
                 dump("type -> logical");
                 res = Atom.LOG(cPos());
                 skip();
-                // end of Type
                 break;
             case AT_INTEGER:
                 dump("type -> integer");
                 res = Atom.INT(cPos());
                 skip();
-                // end of Type
                 break;
             case AT_STRING:
                 dump("type -> string");
                 res = Atom.STR(cPos());
                 skip();
-                // end of Type
                 break;
             case KW_ARR:
                 Position startPos = cPos();
@@ -178,7 +195,8 @@ public class Parser {
                 checkErr(1, OP_RBRACKET);
                 dump("type -> arr [ int_constant ] type");
                 skip(2);
-                parseType();
+                Type type = parseType();
+                res = new Array(newPos(startPos, type.position), size, type);
                 break;
             default:
                 err("Expected: identifier, logical, integer, string or arr token as type");
@@ -186,19 +204,22 @@ public class Parser {
         return res;
     }
 
-    private void parseFunctionDefinition() {
+    private FunDef parseFunctionDefinition() { // TODO
+        Position startPos = cPos();
         checkErr(0, IDENTIFIER);
+        String name = cLex();
         checkErr(1, OP_LPARENT);
         dump("function_definition -> fun identifier ( parameters ) : type = expression");
         skip(2);
-        parseParameters();
+        List<Parameter> parameters = parseParameters();
         checkErr(0, OP_RPARENT);
         checkErr(1, OP_COLON);
         skip(2);
-        parseType();
+        Type type = parseType();
         checkErr(0, OP_ASSIGN);
         skip();
-        parseExpression();
+        Expr body = parseExpression();
+        return new FunDef(newPos(startPos, cPos()), name, parameters, type, body); // OK POSition?
     }
 
     private TypeDef parseTypeDefinition() {
@@ -216,77 +237,96 @@ public class Parser {
         return new TypeDef( newPos(startPos, endPos), name, type );
     }
 
-    private void parseParameters() {
+    private List<Parameter> parseParameters() { // TODO ?
         dump("parameters -> parameter parameters2");
-        parseParameter();
-        parseParameters2();
+        Parameter t = parseParameter();
+        List<Parameter> t2 = parseParameters2();
+
+        List<Parameter> parameters = new ArrayList<>(); parameters.add(t);
+        if (t2 != null) {
+            parameters.addAll(t2);
+        }
+        return parameters; 
     }
 
-    private void parseParameter() {
+    private Parameter parseParameter() { // TODO ?
+        Position startPos = cPos();
         checkErr(0, IDENTIFIER);
+        String name = cLex();
         checkErr(1, OP_COLON);
         dump("parameter -> identifier : type");
         skip(2);
-        parseType();
+        Type type = parseType();
+        return new Parameter(newPos(startPos, type.position), name, type);
     }
 
-    private void parseParameters2() {
+    private List<Parameter> parseParameters2() { // TODO ?
         if (check(OP_COMMA)) {
             dump("parameters2 -> , parameter parameters2");
             skip();
-            parseParameter();
-            parseParameters2();
+
+            Parameter t = parseParameter();
+            List<Parameter> t2 = parseParameters2();
+            List<Parameter> parameters = new ArrayList<>(); parameters.add(t);
+            if (t2 != null) {
+                parameters.addAll(t2);
+            }
+            return parameters;
         } 
-        else {
-            dump("parameters2 -> e");
-            // end of parameters
-        }
+        dump("parameters2 -> e");
+        return null;
     }
 
-    private void parseExpression() {
+    private Expr parseExpression() { // TODO
+        Position startPos = cPos();
         dump("expression -> logical_ior_expression expression2");
-        parseLogicalIorExpression();
-        parseExpression2();
+        Expr t = parseLogicalIorExpression();
+        Expr t2 = parseExpression2(t);
+        return null; // TODO THIS
     }
 
-    private void parseExpression2() {
+    private Expr parseExpression2(Expr expression) { // TODO
         if (check(OP_LBRACE)) {
             checkErr(1, KW_WHERE);
             dump("expression2 -> { where definitions }");
             skip(2);
-            parseDefinitions();
+            Defs t = parseDefinitions();
+            checkErr(0, OP_RBRACE);
+            skip();
+            return new Where(newPos(expression.position, cPos()), expression, t); 
+            // IMPORTANT: Position includes braces!
         } 
         else {
             dump("expression2 -> e");
-            // end of expressions
+            return null;
         }
     }
 
-    private void parseLogicalIorExpression() {
+    private Binary parseLogicalIorExpression() { // TODO
         dump("logical_ior_expression -> logical_and_expression logical_ior_expression2");
-        parseLogicalAndExpression();
-        parseLogicalIorExpression2();
+        Binary left = parseLogicalAndExpression();
+        Binary right = parseLogicalIorExpression2(left);
     }
 
-    private void parseLogicalIorExpression2() {
+    private Binary parseLogicalIorExpression2(Binary left) { // TODO
         if (check(OP_OR)) {
             dump("logical_ior_expression2 -> | logical_and_expression logical_ior_expression2");
             skip();
-            parseLogicalAndExpression();
-            parseLogicalIorExpression2();
+            Binary left = parseLogicalAndExpression();
+            Binary right = parseLogicalIorExpression2(left);
         }
         else {
             dump("logical_ior_expression2 -> e");
         }
     }
 
-    private void parseLogicalAndExpression() {
+    private void parseLogicalAndExpression() { // TODO
         dump("logical_and_expression -> compare_expression logical_and_expression2");
         parseCompareExpression();
         parseLogicalAndExpression2();
     }
 
-    private void parseLogicalAndExpression2() {
+    private Binary parseLogicalAndExpression2(Binary left) { // TODO
         if (check(OP_AND)) {
             dump("logical_and_expression2 -> & compare_expression logical_and_expression2");
             skip();
@@ -295,16 +335,17 @@ public class Parser {
         }
         else {
             dump("logical_and_expression2 -> e");
+
         }
     }
 
-    private void parseCompareExpression() {
+    private void parseCompareExpression() { // TODO
         dump("compare_expression -> additive_expression compare_expression2");
         parseAdditiveExpression();
         parseCompareExpression2();
     }
 
-    private void parseCompareExpression2() {
+    private void parseCompareExpression2() { // TODO
         switch (cToken()) {
             case OP_EQ:
                 dump("compare_expression2 ->  == additive_expression");
@@ -342,13 +383,13 @@ public class Parser {
         }
     }
 
-    private void parseAdditiveExpression() {
+    private void parseAdditiveExpression() { // TODO
         dump("additive_expression -> multiplicative_expression additive_expression2");
         parseMultiplicativeExpression();
         parseAdditiveExpression2();
     }
 
-    private void parseAdditiveExpression2() {
+    private void parseAdditiveExpression2() { // TODO
         if (check(OP_ADD)) {
             dump("additive_expression2 -> + multiplicative_expression");
             skip();
@@ -364,13 +405,13 @@ public class Parser {
         }
     }
 
-    private void parseMultiplicativeExpression() {
+    private void parseMultiplicativeExpression() { // TODO
         dump("multiplicative_expression -> prefix_expression multiplicative_expression2");
         parsePrefixExpression();
         parseMultiplicativeExpression2();
     }
 
-    private void parseMultiplicativeExpression2() {
+    private void parseMultiplicativeExpression2() { // TODO
         switch (cToken()) {
             case OP_MUL:
                 dump("multiplicative_expression2 -> * prefix_expression");
@@ -395,7 +436,7 @@ public class Parser {
         }
     }
 
-    private void parsePrefixExpression() {
+    private void parsePrefixExpression() { // TODO
         switch (cToken()) {
             case OP_ADD:
                 dump("prefix_expression -> + prefix_expression");
@@ -416,13 +457,13 @@ public class Parser {
         }
     }
 
-    private void parsePostfixExpression() {
+    private void parsePostfixExpression() { // TODO
         dump("postfix_expression -> atom_expression postfix_expression2");
         parseAtomExpression();
         parsePostfixExpression2();
     }
 
-    private void parsePostfixExpression2() {
+    private void parsePostfixExpression2() { // TODO
         if (check(OP_LBRACKET)) {
             dump("postfix_expression2 -> [ expression ] postfix_expression2");
             skip();
@@ -436,19 +477,31 @@ public class Parser {
         }
     }
 
-    private void parseAtomExpression() {
+    private Expr parseAtomExpression() { // TODO
+        Expr res = null;
+
+        Position startPos = cPos();
+        String value = cLex();
+        Atom.Type type;
+        
         switch (cToken()) {
             case C_LOGICAL:
                 dump("atom_expression -> log_constant");
                 skip();
+                type = Atom.Type.LOG;
+                res = new Literal(startPos, value, type);
                 break;
             case C_INTEGER:
                 dump("atom_expression -> int_constant");
                 skip();
+                type = Atom.Type.INT;
+                res = new Literal(startPos, value, type);
                 break;
             case C_STRING:
                 dump("atom_expression -> str_constant");
                 skip();
+                type = Atom.Type.STR;
+                res = new Literal(startPos, value, type);
                 break;
             case IDENTIFIER:
                 dump("atom_expression -> identifier atom_expression2");
@@ -472,10 +525,11 @@ public class Parser {
             default:
                 err("Expected constant, identifier, { or (");
         }
+        return res;
     }
 
 
-    private void parseAtomExpression2() {
+    private void parseAtomExpression2() { // TODO
         if (check(OP_LPARENT)) {
             dump("atom_expression2 -> ( expressions )");
             skip();
@@ -488,7 +542,7 @@ public class Parser {
         }
     }
 
-    private void parseAtomExpression3() {
+    private void parseAtomExpression3() { // TODO
         switch (cToken()) {
             case KW_WHILE:
                 dump("atom_expression3 -> while expression : expression");
@@ -533,7 +587,7 @@ public class Parser {
         }
     }
 
-    private void parseAtomExpression4() {
+    private void parseAtomExpression4() { // TODO
         if (check(KW_ELSE)) {
             dump("atom_expression4 -> else expression");
             skip();
@@ -544,13 +598,13 @@ public class Parser {
         }
     }
 
-    private void parseExpressions() {
+    private void parseExpressions() { // TODO
         dump("expressions -> expression expressions2");
         parseExpression();
         parseExpressions2();
     }
 
-    private void parseExpressions2() {
+    private void parseExpressions2() { // TODO
         if (check(OP_COMMA)) {
             dump("expressions2 -> , expression expressions2");
             skip();

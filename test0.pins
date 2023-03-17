@@ -1,5 +1,9 @@
-# types
-typ QString: string;
-typ MyInt: integer;
-typ MyLog: logical
+## types
+## test for expression {where definitions} and empty file
+var x : integer;
+var yy : arr[03] QObject
+#typ QString: string;
+#typ MyInt: integer;
+#typ MyLog: logical;
+#typ MyArr: arr[0020] integer
 
