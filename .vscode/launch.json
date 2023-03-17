@@ -17,7 +17,7 @@
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINSCompiler_a1b3400d",
-            "args": ["PINS","./test0.txt","--dump", "AST", "--exec", "AST" ]
+            "args": ["PINS","./test0.pins","--dump", "AST", "--exec", "AST" ]
         },
         
         {
@@ -26,7 +26,7 @@
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINSCompiler_a1b3400d",
-            "args": ["PINS","./test0.txt","--dump", "LEX" ] 
+            "args": ["PINS","./test0.pins","--dump", "LEX" ] 
         },
         {
             "type": "java",
@@ -34,7 +34,7 @@
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINS23_76a31c49",
-            "args": ["PINS","./test0.txt","--dump", "SYN", "--exec", "SYN" ]
+            "args": ["PINS","./test0.pins","--dump", "SYN", "--exec", "SYN" ]
         },
         {
             "type": "java",

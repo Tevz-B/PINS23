@@ -9,6 +9,7 @@ import static compiler.lexer.TokenType.*;
 import static common.RequireNonNull.requireNonNull;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -60,18 +61,19 @@ public class Parser {
         return parseDefinitions();
     }
 
-
     private Defs parseDefinitions() {
         dump("definitions -> definition definitions2");
         Position startPos = cPos();
         Def t = parseDefinition();
 	    Defs t2 = parseDefinitions2();
-        if (t2 == null) {
-            return new Defs(newPos(startPos, t.position), List.of(t));
+
+        List<Def> defs = new ArrayList<>(); defs.add(t);
+        Position endPos = t.position;
+        if (t2 != null) {
+            defs.addAll(t2.definitions);
+            endPos = t2.position;
         }
-        List<Def> defLst = t2.definitions;
-        defLst.add(0, t);
-        return new Defs(newPos(startPos, t2.position), defLst);
+        return new Defs(newPos(startPos, endPos), defs);
     }
 
     private Defs parseDefinitions2() {
@@ -83,9 +85,14 @@ public class Parser {
             Position startPos = cPos();
             Def t = parseDefinition();
             Defs t2 = parseDefinitions2();
-            List<Def> defLst = t2.definitions;
-            defLst.add(0, t);
-            res = new Defs(newPos(startPos, t2.position), defLst);
+
+            List<Def> defs = new ArrayList<>(); defs.add(t);
+            Position endPos = t.position;
+            if (t2 != null) {
+                defs.addAll(t2.definitions);
+                endPos = t2.position;
+            }
+            res = new Defs(newPos(startPos, endPos), defs);
             break;
         case EOF:
             // end of definitions
@@ -146,11 +153,13 @@ public class Parser {
                 break;
             case AT_LOGICAL:
                 dump("type -> logical");
+                res = Atom.LOG(cPos());
                 skip();
                 // end of Type
                 break;
             case AT_INTEGER:
                 dump("type -> integer");
+                res = Atom.INT(cPos());
                 skip();
                 // end of Type
                 break;
@@ -161,11 +170,14 @@ public class Parser {
                 // end of Type
                 break;
             case KW_ARR:
+                Position startPos = cPos();
                 checkErr(1, OP_LBRACKET);
-                checkErr(2, C_INTEGER);
-                checkErr(3, OP_RBRACKET);
+                skip(2);
+                checkErr(0, C_INTEGER);
+                int size = Integer.parseInt(cLex());
+                checkErr(1, OP_RBRACKET);
                 dump("type -> arr [ int_constant ] type");
-                skip(4);
+                skip(2);
                 parseType();
                 break;
             default:

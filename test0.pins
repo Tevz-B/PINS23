@@ -1,0 +1,5 @@
+# types
+typ QString: string;
+typ MyInt: integer;
+typ MyLog: logical
+
