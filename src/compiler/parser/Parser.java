@@ -16,6 +16,7 @@ import java.util.Stack;
 
 import common.Report;
 import compiler.lexer.Position;
+import compiler.lexer.Position.Location;
 import compiler.lexer.Symbol;
 import compiler.lexer.TokenType;
 import compiler.parser.ast.*;
@@ -54,25 +55,37 @@ public class Parser {
         return parseSource();
     }
 
-    private void parseSource() {
+    private Ast parseSource() {
         dump("source -> definitions");
-        parseDefinitions();
+        return parseDefinitions();
     }
 
 
-    private void parseDefinitions() {
+    private Defs parseDefinitions() {
         dump("definitions -> definition definitions2");
-        parseDefinition();
-	    parseDefinitions2();
+        Position startPos = cPos();
+        Def t = parseDefinition();
+	    Defs t2 = parseDefinitions2();
+        if (t2 == null) {
+            return new Defs(newPos(startPos, t.position), List.of(t));
+        }
+        List<Def> defLst = t2.definitions;
+        defLst.add(0, t);
+        return new Defs(newPos(startPos, t2.position), defLst);
     }
 
-    private void parseDefinitions2() {
+    private Defs parseDefinitions2() {
+        Defs res = null;
         switch(cToken()) {
         case OP_SEMICOLON: 
             dump("definitions2 -> ; definition definitions2");
             skip();
-            parseDefinition();
-            parseDefinitions2();
+            Position startPos = cPos();
+            Def t = parseDefinition();
+            Defs t2 = parseDefinitions2();
+            List<Def> defLst = t2.definitions;
+            defLst.add(0, t);
+            res = new Defs(newPos(startPos, t2.position), defLst);
             break;
         case EOF:
             // end of definitions
@@ -84,9 +97,11 @@ public class Parser {
         default:
             err("Expected ';' or EOF token");
         }
+        return res;
     }
 
-    private void parseDefinition() {
+    private Def parseDefinition() {
+        Def res = null;
         if( check( KW_VAR ) ) {
             dump("definition -> variable_definition");
             skip();
@@ -99,11 +114,15 @@ public class Parser {
         }
         else if( check( KW_TYP ) ) {
             dump("definition -> type_definition");
+            Position startPos = cPos();
             skip();
-            parseTypeDefinition();
+            TypeDef t = parseTypeDefinition();
+            // correct position to include TYP keyword
+            res = new TypeDef( newPos(startPos, t.position), t.name, t.type );
         } else {
             err("Expected 'fun', 'typ' or 'var' keyword as definition");
         }
+        return res;
     }
 
     private void parseVariableDefinition() {
@@ -117,12 +136,13 @@ public class Parser {
         }
     }
 
-    private void parseType() {
+    private Type parseType() {
+        Type res = null;
         switch(cToken()) {
             case IDENTIFIER:
                 dump("type -> identifier");
+                res = new TypeName(cPos(), cLex());
                 skip();
-                // end of Type
                 break;
             case AT_LOGICAL:
                 dump("type -> logical");
@@ -136,6 +156,7 @@ public class Parser {
                 break;
             case AT_STRING:
                 dump("type -> string");
+                res = Atom.STR(cPos());
                 skip();
                 // end of Type
                 break;
@@ -150,6 +171,7 @@ public class Parser {
             default:
                 err("Expected: identifier, logical, integer, string or arr token as type");
         }
+        return res;
     }
 
     private void parseFunctionDefinition() {
@@ -167,12 +189,19 @@ public class Parser {
         parseExpression();
     }
 
-    private void parseTypeDefinition() {
+    private TypeDef parseTypeDefinition() {
         checkErr(0, IDENTIFIER);
-        checkErr(1, OP_COLON);
+        String name = cLex();
+        Position startPos = cPos();
+        skip();
+
+        checkErr(0, OP_COLON);
         dump("type_definition -> typ identifier : type");
-        skip(2);
-        parseType();
+        skip();
+
+        Type type = parseType();
+        Position endPos = type.position;
+        return new TypeDef( newPos(startPos, endPos), name, type );
     }
 
     private void parseParameters() {
@@ -564,14 +593,27 @@ public class Parser {
         }
     }
 
-    /**
-     * Izpiše produkcijo na izhodni tok.
-     */
     private void dump(String production) {
         // remove empty productions
         //if (production.endsWith("-> e")) return;
         if (productionsOutputStream.isPresent()) {
             productionsOutputStream.get().println(production);
         }
+    }
+
+    Position newPos(Location start, Location end) {
+        return new Position( start.line, start.column, end.line, end.column );
+    }
+
+    Position newPos(Location start, int endLine, int endCol) {
+        return new Position( start.line, start.column, endLine, endCol );
+    }
+
+    Position newPos(int startLine, int startCol, Location end) {
+        return new Position( startLine, startCol, end.line, end.column );
+    }
+
+    Position newPos(Position start, Position end) {
+        return new Position( start.start.line, start.start.column, end.end.line, end.end.column );
     }
 }
