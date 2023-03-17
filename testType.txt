@@ -1,5 +1,0 @@
-typ a : a;
-typ a : logical;
-typ a : integer;
-typ a : string;
-typ a : arr[5]a

@@ -18,6 +18,10 @@ import common.Report;
 import compiler.lexer.Position;
 import compiler.lexer.Symbol;
 import compiler.lexer.TokenType;
+import compiler.parser.ast.*;
+import compiler.parser.ast.def.*;
+import compiler.parser.ast.expr.*;
+import compiler.parser.ast.type.*;
 
 public class Parser {
     /**
@@ -46,16 +50,9 @@ public class Parser {
         stack.addAll(symbols);
     }
 
-    /**
-     * Izvedi sintaksno analizo.
-     */
-    public void parse() {
-        parseSource();
+    public Ast parse() {
+        return parseSource();
     }
-    /*
-     * TODO oznaci produkcije s stevilkami
-     * NPR: enum in ga sprintaj z metodo toString()
-     */
 
     private void parseSource() {
         dump("source -> definitions");
@@ -435,50 +432,7 @@ public class Parser {
                 err("Expected constant, identifier, { or (");
         }
     }
-/* 
-    private AST parseAtomExpressionDEL() {
-        switch (cToken()) {
-            case C_LOGICAL:
-                dump("atom_expression -> log_constant");
-                skip();
-                return ASTlog( ... );
-                break;
-            case C_INTEGER:
-                dump("atom_expression -> int_constant");
-                skip();
-                return ASTint( ... );
 
-                break;
-            case C_STRING:
-                dump("atom_expression -> str_constant");
-                skip();
-                return ASTstr( ... );
-
-                break;
-            case IDENTIFIER:
-                dump("atom_expression -> identifier atom_expression2");
-                skip();
-                parseAtomExpression2(smth);
-                break;
-            case OP_LBRACE:
-                dump("atom_expression -> { atom_expression3 }");
-                skip();
-                parseAtomExpression3();
-                checkErr(0, OP_RBRACE);
-                skip();
-                break;
-            case OP_LPARENT:
-                dump("atom_expression -> ( expressions )");
-                skip();
-                parseExpressions();
-                checkErr(0, OP_RPARENT);
-                skip();
-                break;
-            default:
-                err("Expected constant, identifier, { or (");
-        }
-    }
-    */
 
     private void parseAtomExpression2() {
         if (check(OP_LPARENT)) {

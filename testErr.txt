@@ -1,6 +1,0 @@
-#0 params
-fun foo():integer = {x = 3};
-
-
-
-
