@@ -60,11 +60,12 @@ public class Parser {
     }
 
     private Ast parseSource() {
-        dump("source -> definitions");
-        Ast ast = parseDefinitions();
-        if( ast == null) {
+        if(check(EOF)) {
             err("No definition in source code!");
         }
+        dump("source -> definitions");
+        Ast ast = parseDefinitions();
+
         if (check(EOF)) {
             // end of definitions
             dump("$ -> $");
@@ -273,17 +274,22 @@ public class Parser {
                 parameters.addAll(t2);
             }
             return parameters;
-        } 
+        }
         dump("parameters2 -> e");
         return null;
     }
 
     private Expr parseExpression() { // TODO
-        Position startPos = cPos();
         dump("expression -> logical_ior_expression expression2");
         Expr t = parseLogicalIorExpression();
         Expr t2 = parseExpression2(t);
-        return null; // TODO THIS
+        if (t2 != null) {
+            // TODO
+            return null;
+        }
+        else {
+            return t;
+        }
     }
 
     private Expr parseExpression2(Expr expression) { // TODO
@@ -315,11 +321,7 @@ public class Parser {
             skip();
             Expr right_sub = parseLogicalAndExpression();
             Expr left_par = new Binary(newPos(left_sub.position, right_sub.position), left_sub, Operator.OR, right_sub);
-            Expr right_par = parseLogicalIorExpression2(left_par);
-            if (!right_par.equals(left_par)) 
-                return new Binary(newPos(left_par.position, right_par.position), left_par, Operator.OR, right_par);
-            else
-                return left_par;
+            return parseLogicalIorExpression2(left_par);
         }
         else {
             dump("logical_ior_expression2 -> e");
@@ -339,8 +341,7 @@ public class Parser {
             skip();
             Expr right_sub = parseCompareExpression();
             Expr left_par = new Binary(newPos(left_sub.position, right_sub.position), left_sub, Operator.AND, right_sub);
-            Expr right_par = parseLogicalAndExpression2(left_par);
-            return new Binary(newPos(left_par.position, right_par.position), left_par, Operator.AND, right_par);
+            return parseLogicalAndExpression2(left_par);
         }
         else {
             dump("logical_and_expression2 -> e");
@@ -395,24 +396,28 @@ public class Parser {
 
     private Expr parseAdditiveExpression() { // TODO
         dump("additive_expression -> multiplicative_expression additive_expression2");
-        parseMultiplicativeExpression();
-        parseAdditiveExpression2();
-        return null;
+        Expr left = parseMultiplicativeExpression();
+        return parseAdditiveExpression2(left);
     }
 
-    private void parseAdditiveExpression2() { // TODO
+    private Expr parseAdditiveExpression2(Expr left_sub) { // TODO
         if (check(OP_ADD)) {
-            dump("additive_expression2 -> + multiplicative_expression");
+            dump("additive_expression2 -> + multiplicative_expression additive_expression2");
             skip();
-            parseMultiplicativeExpression();
+            Expr right_sub = parseMultiplicativeExpression();
+            Expr left_par = new Binary(newPos(left_sub.position, right_sub.position), left_sub, Operator.ADD, right_sub);
+            return parseAdditiveExpression2(left_par);
         }
         else if (check(OP_SUB)) {
-            dump("additive_expression2 -> - multiplicative_expression");
+            dump("additive_expression2 -> - multiplicative_expression additive_expression2");
             skip();
-            parseMultiplicativeExpression();
+            Expr right_sub = parseMultiplicativeExpression();
+            Expr left_par = new Binary(newPos(left_sub.position, right_sub.position), left_sub, Operator.SUB, right_sub);
+            return parseAdditiveExpression2(left_par);
         }
         else {
             dump("additive_expression2 -> e");
+            return left_sub;
         }
     }
 
@@ -422,30 +427,34 @@ public class Parser {
         return parseMultiplicativeExpression2(left);
     }
 
-    private Expr parseMultiplicativeExpression2(Expr left) { // TODO
-        Expr right;
+    private Expr parseMultiplicativeExpression2(Expr left_sub) { // TODO
+        Expr right_sub;
+        Expr left_par;
         switch (cToken()) {
             case OP_MUL:
-                dump("multiplicative_expression2 -> * prefix_expression");
+                dump("multiplicative_expression2 -> * prefix_expression multiplicative_expression2");
                 skip();
-                right = parsePrefixExpression();
-                return new Binary(newPos(left.position, right.position), left, Operator.MUL, right);
+                right_sub = parsePrefixExpression();
+                left_par = new Binary(newPos(left_sub.position, right_sub.position), left_sub, Operator.MUL, right_sub);
+                return parseMultiplicativeExpression2(left_par);
 
             case OP_DIV:
-                dump("multiplicative_expression2 -> / prefix_expression");
+                dump("multiplicative_expression2 -> / prefix_expression multiplicative_expression2");
                 skip();
-                right = parsePrefixExpression();
-                return new Binary(newPos(left.position, right.position), left, Operator.DIV, right);
+                right_sub = parsePrefixExpression();
+                left_par = new Binary(newPos(left_sub.position, right_sub.position), left_sub, Operator.DIV, right_sub);
+                return parseMultiplicativeExpression2(left_par);
 
             case OP_MOD:
-                dump("multiplicative_expression2 -> % prefix_expression");
+                dump("multiplicative_expression2 -> % prefix_expression multiplicative_expression2");
                 skip();
-                right = parsePrefixExpression();
-                return new Binary(newPos(left.position, right.position), left, Operator.MOD, right);
+                right_sub = parsePrefixExpression();
+                left_par = new Binary(newPos(left_sub.position, right_sub.position), left_sub, Operator.MOD, right_sub);
+                return parseMultiplicativeExpression2(left_par);
 
             default:
                 dump("multiplicative_expression2 -> e");
-                return left;
+                return left_sub;
         }
     }
 
@@ -524,7 +533,7 @@ public class Parser {
                 dump("atom_expression -> identifier atom_expression2");
                 skip();
                 Ast t = parseAtomExpression2();
-                if (t == null) { // id
+                if (t == null) // id
                     return new Name(startPos, value);
                 else // call
                     return new Call(newPos(startPos, t.position), null, value);
@@ -545,6 +554,7 @@ public class Parser {
             default:
                 err("Expected constant, identifier, { or (");
         }
+        return null;
     }
 
 

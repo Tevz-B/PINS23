@@ -46,14 +46,14 @@ compare_expression -> additive_expression compare_expression2  .
 	compare_expression2 ->  .
 
 additive_expression -> multiplicative_expression additive_expression2 .
-	additive_expression2 -> "+" multiplicative_expression  .
-	additive_expression2 -> "-" multiplicative_expression .
+	additive_expression2 -> "+" multiplicative_expression additive_expression2 .
+	additive_expression2 -> "-" multiplicative_expression additive_expression2 .
 	additive_expression2 ->  .
 
 multiplicative_expression -> prefix_expression multiplicative_expression2 .
-	multiplicative_expression2 -> "*" prefix_expression  .
-	multiplicative_expression2 -> "/" prefix_expression  .
-	multiplicative_expression2 -> "%" prefix_expression  .
+	multiplicative_expression2 -> "*" prefix_expression multiplicative_expression2 .
+	multiplicative_expression2 -> "/" prefix_expression multiplicative_expression2 .
+	multiplicative_expression2 -> "%" prefix_expression multiplicative_expression2 .
 	multiplicative_expression2 ->  .
 	
 prefix_expression -> "+" prefix_expression  .

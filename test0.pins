@@ -1,7 +1,7 @@
 ## types
 ## test for expression {where definitions} and empty file
-var x : integer;
-var yy : arr[03] QObject;
+#var x : integer;
+#var yy : arr[03] QObject;
 #typ QString: string;
 #typ MyInt: integer;
 #typ MyLog: logical;
@@ -9,6 +9,12 @@ var yy : arr[03] QObject;
 
 
 ## functions
-#fun f(1,2) : integer = x & y | z <= a*b/((c + 2)*3);
-fun f(1,2) : integer = x & y | z <= a*b/c + 2*3
+#fun f(p1:integer,p2) : integer = x & y | z <= a*b/((c + 2)*3);
+#fun f(p1:integer,p2:integer) : integer = x & y | z <= a*b/c + 2*3;
+
+#fun f(p1:integer):integer=1&2&3&4&5&6 #OK
+#fun f(p1:integer):integer=1&2|3&4&5|6 #OK
+#fun f(p1:integer):integer=1+2-3+3-3 #OK
+fun f(p1:integer):integer=1+2*2+3*3*3 #OK
+#-5-6+1+1+1
 
