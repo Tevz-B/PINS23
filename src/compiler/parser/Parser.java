@@ -309,15 +309,21 @@ public class Parser {
         return parseLogicalIorExpression2(left);
     }
 
-    private Expr parseLogicalIorExpression2(Expr left) { // TODO
+    private Expr parseLogicalIorExpression2(Expr left_sub) { // TODO
         if (check(OP_OR)) {
             dump("logical_ior_expression2 -> | logical_and_expression logical_ior_expression2");
             skip();
-            Expr left = parseLogicalAndExpression();
-            Expr right = parseLogicalIorExpression2(left);
+            Expr right_sub = parseLogicalAndExpression();
+            Expr left_par = new Binary(newPos(left_sub.position, right_sub.position), left_sub, Operator.OR, right_sub);
+            Expr right_par = parseLogicalIorExpression2(left_par);
+            if (!right_par.equals(left_par)) 
+                return new Binary(newPos(left_par.position, right_par.position), left_par, Operator.OR, right_par);
+            else
+                return left_par;
         }
         else {
             dump("logical_ior_expression2 -> e");
+            return left_sub;
         }
     }
 
@@ -327,17 +333,18 @@ public class Parser {
         return parseLogicalAndExpression2(left);
     }
 
-    private Expr parseLogicalAndExpression2(Expr left) { // TODO ?
+    private Expr parseLogicalAndExpression2(Expr left_sub) { // TODO 
         if (check(OP_AND)) {
             dump("logical_and_expression2 -> & compare_expression logical_and_expression2");
             skip();
-            parseCompareExpression();
-            Expr right = parseLogicalAndExpression2(left);
-            return new Binary(newPos(left.position, right.position), left, Operator.AND, right);
+            Expr right_sub = parseCompareExpression();
+            Expr left_par = new Binary(newPos(left_sub.position, right_sub.position), left_sub, Operator.AND, right_sub);
+            Expr right_par = parseLogicalAndExpression2(left_par);
+            return new Binary(newPos(left_par.position, right_par.position), left_par, Operator.AND, right_par);
         }
         else {
             dump("logical_and_expression2 -> e");
-            return left;
+            return left_sub;
         }
     }
 
