@@ -24,6 +24,7 @@ import compiler.parser.ast.*;
 import compiler.parser.ast.def.*;
 import compiler.parser.ast.def.FunDef.Parameter;
 import compiler.parser.ast.expr.*;
+import compiler.parser.ast.expr.Binary.Operator;
 import compiler.parser.ast.type.*;
 
 // CHECK for BUGS: definitions inside { where definitions }
@@ -302,91 +303,94 @@ public class Parser {
         }
     }
 
-    private Binary parseLogicalIorExpression() { // TODO
+    private Expr parseLogicalIorExpression() { // TODO ?
         dump("logical_ior_expression -> logical_and_expression logical_ior_expression2");
-        Binary left = parseLogicalAndExpression();
-        Binary right = parseLogicalIorExpression2(left);
+        Expr left = parseLogicalAndExpression();
+        return parseLogicalIorExpression2(left);
     }
 
-    private Binary parseLogicalIorExpression2(Binary left) { // TODO
+    private Expr parseLogicalIorExpression2(Expr left) { // TODO
         if (check(OP_OR)) {
             dump("logical_ior_expression2 -> | logical_and_expression logical_ior_expression2");
             skip();
-            Binary left = parseLogicalAndExpression();
-            Binary right = parseLogicalIorExpression2(left);
+            Expr left = parseLogicalAndExpression();
+            Expr right = parseLogicalIorExpression2(left);
         }
         else {
             dump("logical_ior_expression2 -> e");
         }
     }
 
-    private void parseLogicalAndExpression() { // TODO
+    private Expr parseLogicalAndExpression() { // TODO ?
         dump("logical_and_expression -> compare_expression logical_and_expression2");
-        parseCompareExpression();
-        parseLogicalAndExpression2();
+        Expr left = parseCompareExpression();
+        return parseLogicalAndExpression2(left);
     }
 
-    private Binary parseLogicalAndExpression2(Binary left) { // TODO
+    private Expr parseLogicalAndExpression2(Expr left) { // TODO ?
         if (check(OP_AND)) {
             dump("logical_and_expression2 -> & compare_expression logical_and_expression2");
             skip();
             parseCompareExpression();
-            parseLogicalAndExpression2();
+            Expr right = parseLogicalAndExpression2(left);
+            return new Binary(newPos(left.position, right.position), left, Operator.AND, right);
         }
         else {
             dump("logical_and_expression2 -> e");
-
+            return left;
         }
     }
 
-    private void parseCompareExpression() { // TODO
+    private Expr parseCompareExpression() { // TODO ?
         dump("compare_expression -> additive_expression compare_expression2");
-        parseAdditiveExpression();
-        parseCompareExpression2();
+        Expr left = parseAdditiveExpression();
+        return parseCompareExpression2(left);
     }
 
-    private void parseCompareExpression2() { // TODO
+    private Expr parseCompareExpression2(Expr left) { // TODO ?
+        Expr right;
         switch (cToken()) {
             case OP_EQ:
                 dump("compare_expression2 ->  == additive_expression");
                 skip();
-                parseAdditiveExpression();
-                break;
+                right = parseAdditiveExpression();
+                return new Binary(newPos(left.position, right.position), left, Operator.EQ, right);
             case OP_NEQ:
                 dump("compare_expression2 ->  != additive_expression");
                 skip();
-                parseAdditiveExpression();
-                break;
+                right = parseAdditiveExpression();
+                return new Binary(newPos(left.position, right.position), left, Operator.NEQ, right);
             case OP_LT:
                 dump("compare_expression2 ->  < additive_expression");
                 skip();
-                parseAdditiveExpression();
-                break;
+                right = parseAdditiveExpression();
+                return new Binary(newPos(left.position, right.position), left, Operator.LT, right);
             case OP_GT:
                 dump("compare_expression2 ->  > additive_expression");
                 skip();
-                parseAdditiveExpression();
-                break;
+                right = parseAdditiveExpression();
+                return new Binary(newPos(left.position, right.position), left, Operator.GT, right);
             case OP_LEQ:
                 dump("compare_expression2 ->  <= additive_expression");
                 skip();
-                parseAdditiveExpression();
-                break;
+                right = parseAdditiveExpression();
+                return new Binary(newPos(left.position, right.position), left, Operator.LEQ, right);
             case OP_GEQ:
                 dump("compare_expression2 ->  >= additive_expression");
                 skip();
-                parseAdditiveExpression();
-                break;
+                right = parseAdditiveExpression();
+                return new Binary(newPos(left.position, right.position), left, Operator.GEQ, right);
             default:
                 dump("compare_expression2 -> e");
-                break;
+                return left;
         }
     }
 
-    private void parseAdditiveExpression() { // TODO
+    private Expr parseAdditiveExpression() { // TODO
         dump("additive_expression -> multiplicative_expression additive_expression2");
         parseMultiplicativeExpression();
         parseAdditiveExpression2();
+        return null;
     }
 
     private void parseAdditiveExpression2() { // TODO
@@ -405,38 +409,40 @@ public class Parser {
         }
     }
 
-    private void parseMultiplicativeExpression() { // TODO
+    private Expr parseMultiplicativeExpression() { // TODO
         dump("multiplicative_expression -> prefix_expression multiplicative_expression2");
-        parsePrefixExpression();
-        parseMultiplicativeExpression2();
+        Expr left = parsePrefixExpression();
+        return parseMultiplicativeExpression2(left);
     }
 
-    private void parseMultiplicativeExpression2() { // TODO
+    private Expr parseMultiplicativeExpression2(Expr left) { // TODO
+        Expr right;
         switch (cToken()) {
             case OP_MUL:
                 dump("multiplicative_expression2 -> * prefix_expression");
                 skip();
-                parsePrefixExpression();
-                break;
-            
+                right = parsePrefixExpression();
+                return new Binary(newPos(left.position, right.position), left, Operator.MUL, right);
+
             case OP_DIV:
                 dump("multiplicative_expression2 -> / prefix_expression");
                 skip();
-                parsePrefixExpression();
-                break;
+                right = parsePrefixExpression();
+                return new Binary(newPos(left.position, right.position), left, Operator.DIV, right);
 
             case OP_MOD:
                 dump("multiplicative_expression2 -> % prefix_expression");
                 skip();
-                parsePrefixExpression();
-                break;
+                right = parsePrefixExpression();
+                return new Binary(newPos(left.position, right.position), left, Operator.MOD, right);
+
             default:
                 dump("multiplicative_expression2 -> e");
-                break;
+                return left;
         }
     }
 
-    private void parsePrefixExpression() { // TODO
+    private Expr parsePrefixExpression() { // TODO Check for arrays (if propper nesting level: prednost pred ostalimi operandi)
         switch (cToken()) {
             case OP_ADD:
                 dump("prefix_expression -> + prefix_expression");
@@ -452,18 +458,26 @@ public class Parser {
                 parsePrefixExpression();
             default:
                 dump("prefix_expression -> postfix_expression");
-                parsePostfixExpression();
-                break;
+                return parsePostfixExpression();
         }
     }
 
-    private void parsePostfixExpression() { // TODO
+    private Expr parsePostfixExpression() { // TODO
+        Expr res = null;
         dump("postfix_expression -> atom_expression postfix_expression2");
-        parseAtomExpression();
-        parsePostfixExpression2();
+        Expr t = parseAtomExpression();
+        Expr t2 = parsePostfixExpression2();
+        if (t2 == null) {
+            return t;
+        } 
+        else {
+            // TODO non NULL
+        }
+        return res;
     }
 
-    private void parsePostfixExpression2() { // TODO
+    private Expr parsePostfixExpression2() { // TODO
+        Expr res = null;
         if (check(OP_LBRACKET)) {
             dump("postfix_expression2 -> [ expression ] postfix_expression2");
             skip();
@@ -475,11 +489,10 @@ public class Parser {
         else {
             dump("postfix_expression2 -> e");
         }
+        return res;
     }
 
     private Expr parseAtomExpression() { // TODO
-        Expr res = null;
-
         Position startPos = cPos();
         String value = cLex();
         Atom.Type type;
@@ -489,27 +502,27 @@ public class Parser {
                 dump("atom_expression -> log_constant");
                 skip();
                 type = Atom.Type.LOG;
-                res = new Literal(startPos, value, type);
-                break;
+                return new Literal(startPos, value, type);
             case C_INTEGER:
                 dump("atom_expression -> int_constant");
                 skip();
                 type = Atom.Type.INT;
-                res = new Literal(startPos, value, type);
-                break;
+                return new Literal(startPos, value, type);
             case C_STRING:
                 dump("atom_expression -> str_constant");
                 skip();
                 type = Atom.Type.STR;
-                res = new Literal(startPos, value, type);
-                break;
-            case IDENTIFIER:
+                return new Literal(startPos, value, type);
+            case IDENTIFIER: // call or name: expr -> foo(a,b,c) || abc
                 dump("atom_expression -> identifier atom_expression2");
                 skip();
-                parseAtomExpression2();
-                break;
+                Ast t = parseAtomExpression2();
+                if (t == null) { // id
+                    return new Name(startPos, value);
+                else // call
+                    return new Call(newPos(startPos, t.position), null, value);
             case OP_LBRACE:
-                dump("atom_expression -> { atom_expression3 }");
+                dump("atom_expression -> { atom_expression3 }"); // TODO bellow
                 skip();
                 parseAtomExpression3();
                 checkErr(0, OP_RBRACE);
@@ -525,21 +538,22 @@ public class Parser {
             default:
                 err("Expected constant, identifier, { or (");
         }
-        return res;
     }
 
 
-    private void parseAtomExpression2() { // TODO
+    private Block parseAtomExpression2() { // TODO
+        Block res = null;
         if (check(OP_LPARENT)) {
             dump("atom_expression2 -> ( expressions )");
             skip();
-            parseExpressions();
+            res = parseExpressions();
             checkErr(0, OP_RPARENT);
             skip();
         }
         else {
             dump("atom_expression2 -> e");
         }
+        return res;
     }
 
     private void parseAtomExpression3() { // TODO
@@ -598,13 +612,28 @@ public class Parser {
         }
     }
 
-    private void parseExpressions() { // TODO
+    private Block parseExpressions() { // TODO
         dump("expressions -> expression expressions2");
-        parseExpression();
-        parseExpressions2();
+        // Parameter t = parseParameter();
+        // List<Parameter> t2 = parseParameters2();
+
+        // List<Parameter> parameters = new ArrayList<>(); parameters.add(t);
+        // if (t2 != null) {
+        //     parameters.addAll(t2);
+        // }
+        Expr t = parseExpression();
+        Block t2 = parseExpressions2();
+        List<Expr> exps = new ArrayList<>(); exps.add(t);
+        Position pos = t.position;
+        if (t2 != null) {
+            exps.addAll(t2.expressions);
+            pos = newPos(pos, t2.position);
+        }
+        return new Block(newPos(t.position, pos), exps);
     }
 
-    private void parseExpressions2() { // TODO
+    private Block parseExpressions2() { // TODO
+        Block res = null;
         if (check(OP_COMMA)) {
             dump("expressions2 -> , expression expressions2");
             skip();
@@ -614,6 +643,7 @@ public class Parser {
         else {
             dump("expressions2 -> e");
         }
+        return res;
     }
 
     void skip(int num) {

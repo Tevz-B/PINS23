@@ -1,9 +1,14 @@
 ## types
 ## test for expression {where definitions} and empty file
 var x : integer;
-var yy : arr[03] QObject
+var yy : arr[03] QObject;
 #typ QString: string;
 #typ MyInt: integer;
 #typ MyLog: logical;
 #typ MyArr: arr[0020] integer
+
+
+## functions
+#fun f(1,2) : integer = x & y | z <= a*b/((c + 2)*3);
+fun f(1,2) : integer = x & y | z <= a*b/c + 2*3
 
