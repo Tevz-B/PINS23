@@ -30,5 +30,22 @@ fun x(x:x):x= x+y*w+z { where
     var z:logical
 }
 
+var x:my_int;
+typ my_int:integer;
+fun f(a:integer):my_int = x + a + y {where var y:integer};
+
+fun f(i:integer):integer = 
+(
+    {x = 10},
+    x
+)
+{
+    where var x : integer
+};
+
+
+##klici
+foo(x,z,c,v,g,foo2(x2,y2))
+
 ##errors
 #fun a() = 5;            # no parameters
