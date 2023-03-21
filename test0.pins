@@ -9,12 +9,26 @@
 
 
 ## functions
-#fun f(p1:integer,p2) : integer = x & y | z <= a*b/((c + 2)*3);
-#fun f(p1:integer,p2:integer) : integer = x & y | z <= a*b/c + 2*3;
+#fun a(p1:integer, p2:integer, p3:string):logical = true;        #ok
+#fun f(p1:integer,p2:integer) : integer = 0;         #ok
+#fun f(p1:logical) : string = 'hello world';         #ok
 
-#fun f(p1:integer):integer=1&2&3&4&5&6 #OK
-#fun f(p1:integer):integer=1&2|3&4&5|6 #OK
-#fun f(p1:integer):integer=1+2-3+3-3 #OK
-fun f(p1:integer):integer=1+2*2+3*3*3 #OK
-#-5-6+1+1+1
+##expressions
+#fun f(p1:integer):integer=1&2&3&4&5&6      #OK
+#fun f(p1:integer):integer=1&2|3&4&5|6      #OK
+#fun f(p1:integer):integer=1+2-3+3-3        #OK
+#fun f(p1:integer):integer=1+2*2+3*3*3       #OK
+#fun x(x:x):x=!++C   
+#fun f(p1:integer,p2:integer) : integer = x & y | z <= a*b/c + 2*3 #ok
+#fun f(p1:integer) : integer = x & y | z <= a*b/((c + 2)*3)
+#fun x(x:x):x= x & y | z <= a*b/c + 2*3;                     
+#fun x(x:x):x= (x & y) | (z <= ((a*b)/c + (2*3)))            
+fun x(x:x):x= x+y*w+z { where 
+    var x:integer;
+    var y:string;
+    typ w:integer;
+    var z:logical
+}
 
+##errors
+#fun a() = 5;            # no parameters
