@@ -525,11 +525,11 @@ public class Parser {
             case IDENTIFIER: // call or name: expr -> foo(a,b,c) || abc
                 dump("atom_expression -> identifier atom_expression2");
                 skip();
-                t = parseAtomExpression2();
-                if (t == null) // id
+                Block t2 = parseAtomExpression2();
+                if (t2 == null) // id
                     return new Name(startPos, value);
                 else // call
-                    return new Call(newPos(startPos, t.position), null, value);
+                    return new Call(newPos(startPos, t2.position), t2.expressions, value);
             case OP_LBRACE:
                 dump("atom_expression -> { atom_expression3 }");
                 skip();
