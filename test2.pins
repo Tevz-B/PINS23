@@ -1,0 +1,10 @@
+fun x(x:x):x={  if  a then b};
+fun x(x:x):x={  
+    if  a then b else c   
+};
+fun x(x:x):x={  
+    while  a:b   
+};
+fun x(x:x):x={  
+    for  x=0, x , x:(x)   
+}

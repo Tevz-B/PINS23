@@ -31,14 +31,14 @@ import compiler.parser.ast.type.*;
 
 public class Parser {
     /**
-     * Seznam leksikalnih simbolov.
-     */
-    // private final List<Symbol> symbols;
-
-    /**
      * Sklad leksikalnih simbolov.
      */
     private Stack<Symbol> stack;
+
+    /**
+     * Prejsnji simbol.
+     */
+    private Symbol prevSymbol;
 
     /**
      * Ciljni tok, kamor izpisujemo produkcije. Če produkcij ne želimo izpisovati,
@@ -220,7 +220,7 @@ public class Parser {
         checkErr(0, OP_ASSIGN);
         skip();
         Expr body = parseExpression();
-        return new FunDef(newPos(startPos, cPos()), name, parameters, type, body); // OK POSition?
+        return new FunDef(newPos(startPos, body.position), name, parameters, type, body);
     }
 
     private TypeDef parseTypeDefinition() {
@@ -490,8 +490,9 @@ public class Parser {
             skip();
             Expr right_sub = parseExpression();
             checkErr(0, OP_RBRACKET);
+            Position endPos = cPos();
             skip();
-            Expr left_par = new Binary(newPos(left_sub.position, cPos()), left_sub, Operator.ARR, right_sub);
+            Expr left_par = new Binary(newPos(left_sub.position, endPos), left_sub, Operator.ARR, right_sub);
             return parsePostfixExpression2(left_par);
         }
         else {
@@ -540,10 +541,11 @@ public class Parser {
             case OP_LPARENT:
                 dump("atom_expression -> ( expressions )");
                 skip();
-                t = parseExpressions();
+                Block b = parseExpressions();
                 checkErr(0, OP_RPARENT);
+                Position endPos = cPos();
                 skip();
-                return t;
+                return new Block(newPos(startPos, endPos), b.expressions);
             default:
                 err("Expected constant, identifier, { or (");
                 return null;
@@ -566,10 +568,12 @@ public class Parser {
         }
     }
 
+     // IMPORTANT: pozicija okrog { ... }
+    //                           ^      ^
     private Expr parseAtomExpression3() { // TODO ?
         Expr first;
         Expr last;
-        Position startPos = cPos();
+        Position startPos = prevPos();
         switch (cToken()) {
             case KW_WHILE:
                 dump("atom_expression3 -> while expression : expression");
@@ -578,7 +582,8 @@ public class Parser {
                 checkErr(0, OP_COLON);
                 skip();
                 last = parseExpression();
-                return new While(newPos(startPos, last.position), first, last);
+                return new While(newPos(startPos, cPos()), first, last); 
+                                            // cPos(): oklepaji {} zraven pozicije!
             case KW_IF:
                 dump("atom_expression3 -> if expression then expression atom_expression4");
                 skip();
@@ -586,13 +591,14 @@ public class Parser {
                 checkErr(0, KW_THEN);
                 skip();
                 last = parseExpression();
-                IfThenElse ifthen = new IfThenElse(newPos(startPos, last.position), first, last);
+                IfThenElse ifthen = new IfThenElse(newPos(startPos, cPos()), first, last); 
+                                                            // cPos(): oklepaji {} zraven pozicije!
                 return parseAtomExpression4(ifthen);
             case KW_FOR:
                 dump("atom_expression3 -> for identifier = expression , expression , expression : expression");
                 skip();
                 checkErr(0, IDENTIFIER);
-                Name ctr = new Name(cPos(), cLex()); // ALI SE POZICIJA STEJE OD { ALI OD for ????
+                Name ctr = new Name(cPos(), cLex());
                 checkErr(1, OP_ASSIGN);
                 skip(2);
                 first = parseExpression();
@@ -605,7 +611,8 @@ public class Parser {
                 checkErr(0, OP_COLON);
                 skip();
                 last = parseExpression();
-                return new For(newPos(startPos, last.position), ctr, first, mid, mid2, last); // TODO test
+                return new For(newPos(startPos, cPos()), ctr, first, mid, mid2, last); // TODO test
+                                            // cPos(): oklepaji {} zraven pozicije!
             default:
                 dump("atom_expression3 -> expression = expression");
                 first = parseExpression();
@@ -621,7 +628,8 @@ public class Parser {
             dump("atom_expression4 -> else expression");
             skip();
             Expr els = parseExpression();
-            return new IfThenElse(newPos(ifthen.position, els.position), ifthen.condition, ifthen.thenExpression, els);
+            return new IfThenElse(newPos(ifthen.position, cPos()), ifthen.condition, ifthen.thenExpression, els); 
+                                                // cPos(): oklepaji {} zraven pozicije!
         }
         else {
             dump("atom_expression4 -> e");
@@ -664,12 +672,12 @@ public class Parser {
 
     void skip(int num) {
         for (int i = 0; i < num; i++) {
-            stack.pop();
+            prevSymbol = stack.pop();
         }
     }
 
     void skip() {
-        stack.pop();
+        prevSymbol = stack.pop();
     }
 
     Symbol cSym() {
@@ -686,6 +694,10 @@ public class Parser {
 
     Position cPos() {
         return stack.peek().position;
+    }
+
+    Position prevPos() {
+        return prevSymbol.position;
     }
 
     boolean check( TokenType type ) {

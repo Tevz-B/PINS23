@@ -1,0 +1,59 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "PINS",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+        {
+			"include": "#ids"
+		},
+		{
+			"include": "#numbers"
+		},
+		{
+			"include": "#symbols"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.pins",
+				"match": "\\b(arr|else|for|fun|if|then|typ|var|where|while)\\b"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.single.pins",
+			"begin": "'",
+			"end": "'",
+			"patterns": [
+				{
+					"name": "constant.character.escape.pins",
+					"match": "\\\\."
+				}
+			]
+		},
+        "ids": {
+			"patterns": [{
+				"name": "ids.pins",
+				"match": "\\b(([a-z][A-Z]_)([a-z][A-Z][0-9]_))\\b"
+			}]
+		},
+		"numbers": {
+			"patterns": [{
+				"name": "numbers.pins",
+				"match": "\\b([0-9]*)\\b"
+			}]
+		},
+		"symbols": {
+			"patterns": [{
+				"name": "symbols.pins",
+				"match": "\\b(\\=\\<\\>\\!\\-\\+\\;\\:\\,\\.\\/\\%\\*)\\b"
+			}]
+		}
+	},
+	"scopeName": "source.pins"
+}

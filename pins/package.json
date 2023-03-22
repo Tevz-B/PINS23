@@ -1,0 +1,25 @@
+{
+  "name": "pins",
+  "displayName": "PINSLang",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.76.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "pins",
+      "aliases": ["PINS", "pins"],
+      "extensions": [".pins",".pns"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "pins",
+      "scopeName": "source.pins",
+      "path": "./syntaxes/pins.tmLanguage.json"
+    }]
+  }
+}

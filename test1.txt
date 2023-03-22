@@ -1,3 +1,0 @@
-fun foo(num1:integer, str:string):integer = {x = 3};
-var ar3 : arr[3]logical
-# no ; at end, vsaj en parameter, aj tu funkcijsk jezk
