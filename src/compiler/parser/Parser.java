@@ -506,6 +506,7 @@ public class Parser {
         String value = cLex();
         Atom.Type type;
         Expr t;
+        Block b;
         
         switch (cToken()) {
             case C_LOGICAL:
@@ -526,11 +527,11 @@ public class Parser {
             case IDENTIFIER: // call or name: expr -> foo(a,b,c) || abc
                 dump("atom_expression -> identifier atom_expression2");
                 skip();
-                Block t2 = parseAtomExpression2();
-                if (t2 == null) // id
+                b = parseAtomExpression2();
+                if (b == null) // id
                     return new Name(startPos, value);
                 else // call
-                    return new Call(newPos(startPos, t2.position), t2.expressions, value);
+                    return new Call(newPos(startPos, b.position), b.expressions, value);
             case OP_LBRACE:
                 dump("atom_expression -> { atom_expression3 }");
                 skip();
@@ -541,7 +542,7 @@ public class Parser {
             case OP_LPARENT:
                 dump("atom_expression -> ( expressions )");
                 skip();
-                Block b = parseExpressions();
+                b = parseExpressions();
                 checkErr(0, OP_RPARENT);
                 Position endPos = cPos();
                 skip();
@@ -559,6 +560,7 @@ public class Parser {
             skip();
             Block t = parseExpressions();
             checkErr(0, OP_RPARENT);
+            t = new Block(newPos(t.position, cPos()), t.expressions);
             skip();
             return t;
         }
@@ -583,7 +585,7 @@ public class Parser {
                 skip();
                 last = parseExpression();
                 return new While(newPos(startPos, cPos()), first, last); 
-                                            // cPos(): oklepaji {} zraven pozicije!
+                                        // cPos(): oklepaji {} zraven pozicije!
             case KW_IF:
                 dump("atom_expression3 -> if expression then expression atom_expression4");
                 skip();
@@ -592,7 +594,7 @@ public class Parser {
                 skip();
                 last = parseExpression();
                 IfThenElse ifthen = new IfThenElse(newPos(startPos, cPos()), first, last); 
-                                                            // cPos(): oklepaji {} zraven pozicije!
+                                        // cPos(): oklepaji {} zraven pozicije!
                 return parseAtomExpression4(ifthen);
             case KW_FOR:
                 dump("atom_expression3 -> for identifier = expression , expression , expression : expression");
@@ -612,14 +614,15 @@ public class Parser {
                 skip();
                 last = parseExpression();
                 return new For(newPos(startPos, cPos()), ctr, first, mid, mid2, last); // TODO test
-                                            // cPos(): oklepaji {} zraven pozicije!
+                                        // cPos(): oklepaji {} zraven pozicije!
             default:
                 dump("atom_expression3 -> expression = expression");
                 first = parseExpression();
                 checkErr(0, OP_ASSIGN);
                 skip();
                 last = parseExpression();
-                return new Binary(newPos(startPos, last.position), first, Operator.ASSIGN, last);
+                return new Binary(newPos(startPos, cPos()), first, Operator.ASSIGN, last);
+                                        // cPos(): oklepaji {} zraven pozicije!
         }
     }
 

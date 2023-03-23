@@ -1,0 +1,11 @@
+fun firstfunction(x: integer, y: string, z: logical, n: arr[69] arr[420] string): integer =
+	( {for i = 1, i <= 100, {i = i + 1}:
+		{
+			while j > (-10): {
+				if j * (-10) + 20 + 30 + 10 - 40 / 50 % 100 -(-(-(-(-(+10))))) != 123 then
+					break
+				else
+					firstfunction(123, -234, +456)
+			}
+		# komentar komentar komentar ----------------------------------------------
+		}	} )
