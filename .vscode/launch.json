@@ -17,7 +17,7 @@
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINSCompiler_a1b3400d",
-            "args": ["PINS","./test3.pins","--dump", "AST", "--exec", "AST" ]
+            "args": ["PINS","./test3.pins","--dump", "NAME", "--exec", "NAME" ]
         },
         
         {
