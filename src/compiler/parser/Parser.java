@@ -118,7 +118,7 @@ public class Parser {
         return res;
     }
 
-    private Def parseDefinition() { // TODO ?
+    private Def parseDefinition() { 
         Position startPos = cPos();
         if( check( KW_VAR ) ) {
             dump("definition -> variable_definition");
@@ -205,7 +205,7 @@ public class Parser {
         return res;
     }
 
-    private FunDef parseFunctionDefinition() { // TODO ?
+    private FunDef parseFunctionDefinition() { 
         Position startPos = cPos();
         checkErr(0, IDENTIFIER);
         String name = cLex();
@@ -238,7 +238,7 @@ public class Parser {
         return new TypeDef( newPos(startPos, endPos), name, type );
     }
 
-    private List<Parameter> parseParameters() { // TODO ?
+    private List<Parameter> parseParameters() { 
         dump("parameters -> parameter parameters2");
         Parameter t = parseParameter();
         List<Parameter> t2 = parseParameters2();
@@ -250,7 +250,7 @@ public class Parser {
         return parameters; 
     }
 
-    private Parameter parseParameter() { // TODO ?
+    private Parameter parseParameter() { 
         Position startPos = cPos();
         checkErr(0, IDENTIFIER);
         String name = cLex();
@@ -261,7 +261,7 @@ public class Parser {
         return new Parameter(newPos(startPos, type.position), name, type);
     }
 
-    private List<Parameter> parseParameters2() { // TODO ?
+    private List<Parameter> parseParameters2() { 
         if (check(OP_COMMA)) {
             dump("parameters2 -> , parameter parameters2");
             skip();
@@ -278,13 +278,13 @@ public class Parser {
         return null;
     }
 
-    private Expr parseExpression() { // TODO
+    private Expr parseExpression() {
         dump("expression -> logical_ior_expression expression2");
         Expr t = parseLogicalIorExpression();
         return parseExpression2(t);
     }
 
-    private Expr parseExpression2(Expr expression) { // TODO
+    private Expr parseExpression2(Expr expression) {
         if (check(OP_LBRACE)) {
             checkErr(1, KW_WHERE);
             dump("expression2 -> { where definitions }");
@@ -302,13 +302,13 @@ public class Parser {
         }
     }
 
-    private Expr parseLogicalIorExpression() { // TODO ?
+    private Expr parseLogicalIorExpression() { 
         dump("logical_ior_expression -> logical_and_expression logical_ior_expression2");
         Expr left = parseLogicalAndExpression();
         return parseLogicalIorExpression2(left);
     }
 
-    private Expr parseLogicalIorExpression2(Expr left_sub) { // TODO ?
+    private Expr parseLogicalIorExpression2(Expr left_sub) { 
         if (check(OP_OR)) {
             dump("logical_ior_expression2 -> | logical_and_expression logical_ior_expression2");
             skip();
@@ -322,13 +322,13 @@ public class Parser {
         }
     }
 
-    private Expr parseLogicalAndExpression() { // TODO ?
+    private Expr parseLogicalAndExpression() { 
         dump("logical_and_expression -> compare_expression logical_and_expression2");
         Expr left = parseCompareExpression();
         return parseLogicalAndExpression2(left);
     }
 
-    private Expr parseLogicalAndExpression2(Expr left_sub) { // TODO ?
+    private Expr parseLogicalAndExpression2(Expr left_sub) { 
         if (check(OP_AND)) {
             dump("logical_and_expression2 -> & compare_expression logical_and_expression2");
             skip();
@@ -342,13 +342,13 @@ public class Parser {
         }
     }
 
-    private Expr parseCompareExpression() { // TODO ?
+    private Expr parseCompareExpression() { 
         dump("compare_expression -> additive_expression compare_expression2");
         Expr left = parseAdditiveExpression();
         return parseCompareExpression2(left);
     }
 
-    private Expr parseCompareExpression2(Expr left) { // TODO ?
+    private Expr parseCompareExpression2(Expr left) { 
         Expr right;
         switch (cToken()) {
             case OP_EQ:
@@ -387,13 +387,13 @@ public class Parser {
         }
     }
 
-    private Expr parseAdditiveExpression() { // TODO ?
+    private Expr parseAdditiveExpression() { 
         dump("additive_expression -> multiplicative_expression additive_expression2");
         Expr left = parseMultiplicativeExpression();
         return parseAdditiveExpression2(left);
     }
 
-    private Expr parseAdditiveExpression2(Expr left_sub) { // TODO ?
+    private Expr parseAdditiveExpression2(Expr left_sub) { 
         if (check(OP_ADD)) {
             dump("additive_expression2 -> + multiplicative_expression additive_expression2");
             skip();
@@ -414,13 +414,13 @@ public class Parser {
         }
     }
 
-    private Expr parseMultiplicativeExpression() { // TODO ?
+    private Expr parseMultiplicativeExpression() { 
         dump("multiplicative_expression -> prefix_expression multiplicative_expression2");
         Expr left = parsePrefixExpression();
         return parseMultiplicativeExpression2(left);
     }
 
-    private Expr parseMultiplicativeExpression2(Expr left_sub) { // TODO ?
+    private Expr parseMultiplicativeExpression2(Expr left_sub) { 
         Expr right_sub;
         Expr left_par;
         switch (cToken()) {
@@ -451,9 +451,7 @@ public class Parser {
         }
     }
 
-    private Expr parsePrefixExpression() { // TODO ? 
-        // Check for arrays (if propper nesting level: prednost pred ostalimi operandi)
-        // TODO check if !!!!op, ++++works ??
+    private Expr parsePrefixExpression() {  
         Position startPos = cPos();
         Expr t;
         switch (cToken()) {
@@ -478,13 +476,13 @@ public class Parser {
         }
     }
 
-    private Expr parsePostfixExpression() { // TODO ?
+    private Expr parsePostfixExpression() { 
         dump("postfix_expression -> atom_expression postfix_expression2");
         Expr left = parseAtomExpression();
         return parsePostfixExpression2(left);
     }
 
-    private Expr parsePostfixExpression2(Expr left_sub) { // TODO TEST [expr][expr][expr] .. najrpej se gnezdi prvi, potem drugi ...        if (check(OP_LBRACKET)) {
+    private Expr parsePostfixExpression2(Expr left_sub) {
         if (check(OP_LBRACKET)) {    
             dump("postfix_expression2 -> [ expression ] postfix_expression2");
             skip();
@@ -501,7 +499,7 @@ public class Parser {
         }
     }
 
-    private Expr parseAtomExpression() { // TODO ?
+    private Expr parseAtomExpression() { 
         Position startPos = cPos();
         String value = cLex();
         Atom.Type type;
@@ -554,7 +552,7 @@ public class Parser {
     }
 
 
-    private Block parseAtomExpression2() { // TODO ?
+    private Block parseAtomExpression2() { 
         if (check(OP_LPARENT)) {
             dump("atom_expression2 -> ( expressions )");
             skip();
@@ -572,7 +570,7 @@ public class Parser {
 
      // IMPORTANT: pozicija okrog { ... }
     //                           ^      ^
-    private Expr parseAtomExpression3() { // TODO ?
+    private Expr parseAtomExpression3() { 
         Expr first;
         Expr last;
         Position startPos = prevPos();
@@ -626,7 +624,7 @@ public class Parser {
         }
     }
 
-    private Expr parseAtomExpression4(IfThenElse ifthen) { // TODO ?
+    private Expr parseAtomExpression4(IfThenElse ifthen) {
         if (check(KW_ELSE)) {
             dump("atom_expression4 -> else expression");
             skip();
@@ -640,7 +638,7 @@ public class Parser {
         }
     }
 
-    private Block parseExpressions() { // TODO ? 
+    private Block parseExpressions() {
         dump("expressions -> expression expressions2");
         Expr t = parseExpression();
         Block t2 = parseExpressions2();
@@ -653,7 +651,7 @@ public class Parser {
         return new Block(newPos(t.position, pos), exps);
     }
 
-    private Block parseExpressions2() { // TODO ?
+    private Block parseExpressions2() {
         if (check(OP_COMMA)) {
             dump("expressions2 -> , expression expressions2");
             skip();

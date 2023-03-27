@@ -24,11 +24,15 @@ public class NameChecker implements Visitor {
      * definicijami.
      */
     private NodeDescription<Def> definitions; // za izpis, klici ko se uporabi ID
+    // puscica, 2. obhod
 
     /**
      * Simbolna tabela.
      */
     private SymbolTable symbolTable; // za preverjanje napak, shrani definicije
+    // 1. obhod
+
+    private boolean insertPhase;
 
     /**
      * Ustvari nov razreševalnik imen.
@@ -36,22 +40,25 @@ public class NameChecker implements Visitor {
     public NameChecker(
         NodeDescription<Def> definitions,
         SymbolTable symbolTable
-    ) {
+    ) 
+    {
         requireNonNull(definitions, symbolTable);
         this.definitions = definitions;
         this.symbolTable = symbolTable;
+        this.insertPhase = true;
     }
 
     @Override
     public void visit(Call call) {
+        // check if function
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
     @Override
     public void visit(Binary binary) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        binary.left.accept(this);
+        binary.right.accept(this);
     }
 
     @Override
@@ -68,8 +75,12 @@ public class NameChecker implements Visitor {
 
     @Override
     public void visit(Name name) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        var def = symbolTable.definitionFor(name.name);
+        if (def.isPresent()) {
+            definitions.store(def.get(), name);
+        } else {
+            err_nodef(name.position, name.name);
+        }
     }
 
     @Override
@@ -104,70 +115,106 @@ public class NameChecker implements Visitor {
 
     @Override
     public void visit(Defs defs) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        insertPhase = true;
+        for (Def d : defs.definitions) {
+            d.accept(this);
+        }
+        insertPhase = false;
+        for (Def d : defs.definitions) {
+            d.accept(this);
+        }
     }
 
     @Override
     public void visit(FunDef funDef) {
-        try {
-            symbolTable.insert(funDef);
+        if (insertPhase) {
+            insert(funDef);
+            funDef.type.accept(this);
         }
-        catch (Exception e) {
-            err1(funDef.position, funDef.name);
+        else /* resolve phase */ {
+            symbolTable.pushScope();
+            insertPhase = true; // definicije
+            for (Parameter p : funDef.parameters) 
+                p.accept(this);
+            funDef.body.accept(this);
+
+            insertPhase = false; // resolve
+            for (Parameter p : funDef.parameters) 
+                p.accept(this);
+            funDef.body.accept(this);
+
+            symbolTable.popScope();
         }
-        symbolTable.pushScope();
     }
 
     @Override
     public void visit(TypeDef typeDef) {
-        try {
-            symbolTable.insert(typeDef);
+        if (insertPhase) {
+            insert(typeDef);
         }
-        catch (Exception e) {
-            err1(typeDef.position, typeDef.name);
+        else /* resolve phase */ {
+            typeDef.type.accept(this);
         }
     }
 
     @Override
     public void visit(VarDef varDef) {
-        try {
-            symbolTable.insert(varDef);
+        if (insertPhase) {
+            insert(varDef);
         }
-        catch (Exception e) {
-            err1(varDef.position, varDef.name);
-        }    
+        else /* resolve phase */{  
+            varDef.type.accept(this);
+        }
     }
 
     @Override
-    public void visit(Parameter parameter) {
-        try {
-            symbolTable.insert(parameter);
+    public void visit(Parameter parameter) { // TODO
+        if (insertPhase) {
+            insert(parameter);
         }
-        catch (Exception e) {
-            err1(parameter.position, parameter.name);
+        else /* resolve phase */{  
+            parameter.type.accept(this);
         }
     }
 
     @Override
     public void visit(Array array) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        array.type.accept(this);
     }
 
     @Override
     public void visit(Atom atom) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // Do nothing
     }
 
     @Override
     public void visit(TypeName name) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        var def = symbolTable.definitionFor(name.identifier);
+        if (def.isPresent()) {
+            definitions.store(def.get(), name);
+        } else {
+            err_nodef(name.position, name.identifier);
+        }
     }
 
-    private void err1(Position pos, String name) {
-        Report.error(pos, "Name '"+ name + "'' already exists in this scope!");
+    /**
+     * Helpers
+     */
+
+    private void insert(Def definition) {
+        try {
+            symbolTable.insert(definition);
+        }
+        catch (Exception e) {
+            err_duplicate(definition.position, definition.name);
+        }
+    }
+
+    private void err_duplicate(Position pos, String name) {
+        Report.error(pos, "Name Resolve Error: Name '" + name + "'' already exists in this scope!");
+    }
+
+    private void err_nodef(Position pos, String name) {
+        Report.error(pos, "Name Resolve Error: No definition for '" + name + "'!");
     }
 }

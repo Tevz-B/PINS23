@@ -19,4 +19,4 @@ Uporaba:
 Za dodatne opcije si poglejte definicijo uporabniškega vmesnika v razredu `App.CLI`.
 
 example:
-java -cp ".:../lib/*" App test ../../PINSCompiler/ ../tests/3-ast-popravljeno-v1.tst --verbose
+java -cp ".:../lib/*" App test ../../ ../tests/4-name-public.tst --verbose
