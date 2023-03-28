@@ -129,9 +129,14 @@ public class NameChecker implements Visitor {
     public void visit(FunDef funDef) {
         if (insertPhase) {
             insert(funDef);
-            funDef.type.accept(this);
+            // funDef.type.accept(this); // NE pri insert
         }
         else /* resolve phase */ {
+            // check param types
+            funDef.type.accept(this);
+            for (Parameter p : funDef.parameters) {
+                p.type.accept(this);
+            }
             symbolTable.pushScope();
             insertPhase = true; // definicije
             for (Parameter p : funDef.parameters) 
@@ -189,11 +194,13 @@ public class NameChecker implements Visitor {
 
     @Override
     public void visit(TypeName name) {
-        var def = symbolTable.definitionFor(name.identifier);
-        if (def.isPresent()) {
-            definitions.store(def.get(), name);
-        } else {
-            err_nodef(name.position, name.identifier);
+        if (!insertPhase) {
+            var def = symbolTable.definitionFor(name.identifier);
+            if (def.isPresent()) {
+                definitions.store(def.get(), name);
+            } else {
+                err_nodef(name.position, name.identifier);
+            }
         }
     }
 

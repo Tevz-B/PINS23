@@ -1,2 +1,4 @@
-var x : integer;
-fun f ( y : integer ) : logical = x + y
+#fun f ( y : x ) : logical = y {where var x:x}; #napaka, ker je x var ne typ, znotraj where.
+fun g ( x: x) : integer = x; # OK
+typ x : integer;
+typ x2 : integer
