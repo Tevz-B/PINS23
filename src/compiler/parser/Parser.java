@@ -143,7 +143,7 @@ public class Parser {
             if( check( EOF ) ) {
                 err("Delete extra ';' at the end of file.");
             }
-            err("Expected 'fun', 'typ' or 'var' keyword as definition.");
+            err("Expected 'fun', 'typ' or 'var' keyword as definition.\nCheck for extra ';' at the end of definitions.");
             return null;
         }
     }
