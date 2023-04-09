@@ -36,7 +36,9 @@ public class Binary extends Expr {
         this.right = right;
     }
 
-	@Override public void accept(Visitor visitor) { visitor.visit(this); }
+	@Override public void accept(Visitor visitor) { 
+        visitor.visit(this); 
+    }
 
     public static enum Operator {
         ADD,       // +
