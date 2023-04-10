@@ -7,4 +7,4 @@ typ int4 : int3;
 typ int3 : int2;
 typ int2 : int1;
 typ int1 : integer;
-fun f(x:integer, y:string):integer = x + y # +  test block
+fun f(x:integer, y:string):integer = x + 10 # +  test block

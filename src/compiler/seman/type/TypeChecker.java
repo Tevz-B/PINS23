@@ -19,6 +19,7 @@ import compiler.parser.ast.expr.*;
 import compiler.parser.ast.type.*;
 import compiler.seman.common.NodeDescription;
 import compiler.seman.type.type.Type;
+import compiler.seman.type.type.Type.Atom.Kind;
 
 public class TypeChecker implements Visitor {
     /**
@@ -47,10 +48,52 @@ public class TypeChecker implements Visitor {
     public void visit(Binary binary) {
         binary.left.accept(this);
         binary.right.accept(this);
-        // TODO check if both integers
-        var binType = types.valueFor(binary.right).get();
+        var l = types.valueFor(binary.left).get();
+        var r = types.valueFor(binary.right).get();
+        Type binType = null;
+        switch (binary.operator) {
+            case ADD:
+            case SUB:
+            case MOD:                        
+            case MUL:
+            case DIV:
+                if (l.isInt() && r.isInt())
+                    binType = l;
+                else
+                    err_typ(binary, "Arithmetic expression error.", l, r);
+                break;
+            case AND:
+            case OR:
+                if (l.isLog() && r.isLog())
+                    binType = l;
+                else
+                    err_typ(binary, "Logical expression error.", l, r);
+                break;
+            case ARR:
+                if (l.isArray() && r.isInt())
+                    binType = l.asArray().get().type;
+                else
+                    err_typ(binary, "Array expression error.", l, r);
+                break;
+            case ASSIGN:
+                if (l.equals(r) && l.isAtom())
+                    binType = l;
+                else
+                    err_typ(binary, "Assign expression error - (not structuraly equal).", l, r);
+                break;
+            case EQ:
+            case GEQ:
+            case GT:
+            case LEQ:
+            case LT:
+            case NEQ:
+                if (l.equals(r) && (l.isLog() || l.isInt()))
+                    binType = new Type.Atom(Kind.LOG);
+                else
+                    err_typ(binary, "Comparrisson expression error.", l, r);
+                break;
+        }
         types.store(binType, binary);
-        // TODO other operators
     }
 
     @Override
@@ -79,8 +122,17 @@ public class TypeChecker implements Visitor {
 
     @Override
     public void visit(Literal literal) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        switch (literal.type) {
+            case INT:
+                types.store(new Type.Atom(Kind.INT), literal);
+                return;
+            case LOG:
+                types.store(new Type.Atom(Kind.LOG), literal);
+                return;
+            case STR:
+                types.store(new Type.Atom(Kind.STR), literal);
+                return;
+        }
     }
 
     @Override
@@ -117,6 +169,8 @@ public class TypeChecker implements Visitor {
             paramTypes.add(types.valueFor(p).get());
         }
         funDef.body.accept(this);
+        if (!returnType.equals(types.valueFor(funDef.body).get()))
+            err(funDef, "Function body does not match return type");
         var funType = new Type.Function(paramTypes, returnType);
         types.store(funType, funDef);
     }
@@ -148,16 +202,16 @@ public class TypeChecker implements Visitor {
 
     @Override
     public void visit(Atom atom) {
-        compiler.seman.type.type.Type.Atom type = null;
+        Type.Atom type = null;
         switch (atom.type) {
             case INT:
-                type = new compiler.seman.type.type.Type.Atom( Type.Atom.Kind.INT );
+                type = new Type.Atom( Kind.INT );
             break;
             case LOG:
-                type = new compiler.seman.type.type.Type.Atom( Type.Atom.Kind.LOG );
+                type = new Type.Atom( Kind.LOG );
             break;
             case STR:
-                type = new compiler.seman.type.type.Type.Atom( Type.Atom.Kind.STR );
+                type = new Type.Atom( Kind.STR );
             break;
         }
         types.store(type, atom);
@@ -172,5 +226,12 @@ public class TypeChecker implements Visitor {
 
     private void err(Ast node, String message) {
         Report.error(node.position, "Type Error: " + message);
+    }
+
+    private void err_typ(Ast node, String message, Type t1, Type t2) {
+        if (t2 != null) 
+            err(node, message + "\nTypes are: '" + t1.toString() + "' and '" + t2.toString() + "'");        
+        else 
+            err(node, message + "\nType is: '" + t1.toString() + "'"); 
     }
 }
