@@ -133,7 +133,10 @@ public abstract class Type {
 
         @Override
         public boolean equals(Type t) {
-            throw new RuntimeException("Implementiraj ...");
+            if (t.isAtom())
+                return ((Atom) t).kind == this.kind;
+            else
+                throw new RuntimeException("Implementiraj ...");
         }
 
         @Override

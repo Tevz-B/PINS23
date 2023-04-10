@@ -1,32 +1,10 @@
-#fun f ( y : x ) : logical = y {where var x:x}; #napaka, ker je x var ne typ, znotraj where.
-fun g ( x: x) : integer = x; # OK
-typ x : integer;
-typ x2 : integer;
-typ lt: arr[10]integer;
-var list : lt;
-var y : logical;
-fun f(y:x):x = (
-    g(y),
-    {for y = 0, 10, 2: y},
-    list[y],
-    f(y),
-    a + b + g + y {where
-        var a : t1;
-        var b : x2;
-        var g : t1;
-        var y : integer;
-        typ t1 : integer
-    }
-);
-fun h(y:x):x = (
-    h(y),
-    h + i1 * i2 * a[5] {where
-        var h : x;
-        var i1 : x;
-        var i2 : arrType;
-        typ arrType : arr[64]string;
-        var a : arrType
-    },
-    h(1555)
-)
-
+var x : int4;
+var  y : a;
+typ a : arr[123] int4;
+var y2 : arr[12] string;
+typ int : integer;
+typ int4 : int3;
+typ int3 : int2;
+typ int2 : int1;
+typ int1 : integer;
+fun f(x:integer, y:string):integer = x + y # +  test block

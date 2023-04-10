@@ -19,10 +19,7 @@ import compiler.seman.name.env.SymbolTable;
 import compiler.seman.name.env.SymbolTable.DefinitionAlreadyExistsException;
 
 public class NameChecker implements Visitor {
-    /**
-     * Opis vozlišč, ki jih povežemo z njihovimi
-     * definicijami.
-     */
+    
     private NodeDescription<Def> definitions; // za izpis, klici ko se uporabi ID
     // puscica, 2. obhod
 
@@ -38,9 +35,6 @@ public class NameChecker implements Visitor {
      */
     private boolean insertPhase;
 
-    /**
-     * Ustvari nov razreševalnik imen.
-     */
     public NameChecker(
         NodeDescription<Def> definitions,
         SymbolTable symbolTable

@@ -7,8 +7,12 @@ package compiler.seman.type;
 
 import static common.RequireNonNull.requireNonNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import common.Report;
 import compiler.common.Visitor;
+import compiler.parser.ast.Ast;
 import compiler.parser.ast.def.*;
 import compiler.parser.ast.def.FunDef.Parameter;
 import compiler.parser.ast.expr.*;
@@ -41,8 +45,12 @@ public class TypeChecker implements Visitor {
 
     @Override
     public void visit(Binary binary) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        binary.left.accept(this);
+        binary.right.accept(this);
+        // TODO check if both integers
+        var binType = types.valueFor(binary.right).get();
+        types.store(binType, binary);
+        // TODO other operators
     }
 
     @Override
@@ -59,8 +67,8 @@ public class TypeChecker implements Visitor {
 
     @Override
     public void visit(Name name) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        var def = definitions.valueFor(name).get();
+        types.store(types.valueFor(def).get(), name);
     }
 
     @Override
@@ -95,49 +103,74 @@ public class TypeChecker implements Visitor {
 
     @Override
     public void visit(Defs defs) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        for (Def d : defs.definitions)
+            d.accept(this);
     }
 
     @Override
     public void visit(FunDef funDef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        funDef.type.accept(this);
+        var returnType = types.valueFor(funDef.type).get();
+        List<Type> paramTypes = new ArrayList<>();
+        for (var p : funDef.parameters) {
+            p.accept(this);
+            paramTypes.add(types.valueFor(p).get());
+        }
+        funDef.body.accept(this);
+        var funType = new Type.Function(paramTypes, returnType);
+        types.store(funType, funDef);
     }
 
     @Override
     public void visit(TypeDef typeDef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        typeDef.type.accept(this);
+        types.store(types.valueFor(typeDef.type).get(), typeDef);
     }
 
     @Override
     public void visit(VarDef varDef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        varDef.type.accept(this);
+        types.store( types.valueFor(varDef.type).get(), varDef);
     }
 
     @Override
     public void visit(Parameter parameter) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        parameter.type.accept(this);
+        types.store(types.valueFor(parameter.type).get(), parameter);
     }
 
     @Override
     public void visit(Array array) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        array.type.accept(this);
+        var arrayType = new Type.Array(array.size, types.valueFor(array.type).get());
+        types.store(arrayType, array);
     }
 
     @Override
     public void visit(Atom atom) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        compiler.seman.type.type.Type.Atom type = null;
+        switch (atom.type) {
+            case INT:
+                type = new compiler.seman.type.type.Type.Atom( Type.Atom.Kind.INT );
+            break;
+            case LOG:
+                type = new compiler.seman.type.type.Type.Atom( Type.Atom.Kind.LOG );
+            break;
+            case STR:
+                type = new compiler.seman.type.type.Type.Atom( Type.Atom.Kind.STR );
+            break;
+        }
+        types.store(type, atom);
     }
 
     @Override
-    public void visit(TypeName name) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public void visit(TypeName name) { // poglej v globino kateri tip je
+        var typeDef = definitions.valueFor(name).get();
+        typeDef.accept(this); // izračunaj STRUKT tip za TypeDef (typDef -> TypName ->typDef -> TypName -> ... -> AtomType/ArrType)
+        types.store(types.valueFor(typeDef).get(), name); // shrani strukturni tip za TypeName
+    }
+
+    private void err(Ast node, String message) {
+        Report.error(node.position, "Type Error: " + message);
     }
 }

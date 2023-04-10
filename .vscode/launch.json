@@ -6,43 +6,19 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Test PINS MAC",
-            "request": "launch",
-            "mainClass": "App",
-            "projectName": "PINSCompiler_a1b3400d"
-        },
-        {
-            "type": "java",
             "name": "Launch PINS Main MAC",
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINSCompiler_a1b3400d",
-            "args": ["PINS","./test1.pins","--dump", "NAME", "--exec", "NAME" ]
-        },
-        
-        {
-            "type": "java",
-            "name": "Launch PINS Main MAC LEX",
-            "request": "launch",
-            "mainClass": "Main",
-            "projectName": "PINSCompiler_a1b3400d",
-            "args": ["PINS","./test0.pins","--dump", "LEX" ] 
+            "args": ["PINS","./test0.pins","--dump", "TYP", "--exec", "TYP" ]
         },
         {
             "type": "java",
-            "name": "Launch PINS Main",
+            "name": "Launch PINS Main WIN",
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINS23_76a31c49",
-            "args": ["PINS","./test0.pins","--dump", "NAME", "--exec", "NAME" ]
+            "args": ["PINS","./test0.pins","--dump", "TYP", "--exec", "TYP" ]
         },
-        {
-            "type": "java",
-            "name": "help PINS",
-            "request": "launch",
-            "mainClass": "Main",
-            "projectName": "PINSCompiler_a1b3400d",
-            "args": ["PINS"] 
-        }
     ]
 }
