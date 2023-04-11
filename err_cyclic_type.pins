@@ -1,0 +1,8 @@
+typ a3 : a;
+typ a2: a3;
+var x : a1;
+fun f(x:integer):integer=5;
+typ a1 : a2;
+typ a : arr[2] a3
+
+

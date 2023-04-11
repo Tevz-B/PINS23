@@ -32,10 +32,13 @@ public class TypeChecker implements Visitor {
      */
     private NodeDescription<Type> types;
 
+    private ArrayList<Def> cycleCatch;
+
     public TypeChecker(NodeDescription<Def> definitions, NodeDescription<Type> types) {
         requireNonNull(definitions, types);
         this.definitions = definitions;
         this.types = types;
+        cycleCatch = new ArrayList<>();
     }
 
     @Override
@@ -224,11 +227,11 @@ public class TypeChecker implements Visitor {
             p.accept(this);
             paramTypes.add(types.valueFor(p).get());
         }
-        funDef.body.accept(this);
-        if (!returnType.equals(types.valueFor(funDef.body).get()))
-            err(funDef, "Function body does not match return type");
         var funType = new Type.Function(paramTypes, returnType);
         types.store(funType, funDef);
+        funDef.body.accept(this);
+        if (!returnType.equals(types.valueFor(funDef.body).get()))
+            err(funDef, "Function body returns '" + types.valueFor(funDef.body).get() + "' and does not match return type '" + returnType + "'");
     }
 
     @Override
@@ -276,8 +279,12 @@ public class TypeChecker implements Visitor {
     @Override
     public void visit(TypeName name) { // poglej v globino kateri tip je
         var typeDef = definitions.valueFor(name).get();
+        if (cycleCatch.contains(typeDef))
+            err(name, "Cyclic type definition");
+        cycleCatch.add(typeDef);
         typeDef.accept(this); // izračunaj STRUKT tip za TypeDef (typDef -> TypName ->typDef -> TypName -> ... -> AtomType/ArrType)
         types.store(types.valueFor(typeDef).get(), name); // shrani strukturni tip za TypeName
+        cycleCatch.clear();
     }
 
     private void err(Ast node, String message) {

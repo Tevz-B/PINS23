@@ -1,0 +1,1 @@
+fun f2(x:int):int = ({{while true : x+x} = {while false : 2}}, x)

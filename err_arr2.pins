@@ -1,0 +1,5 @@
+typ a : arr[123] int;
+typ int : integer;
+fun h(x:a):int = 5;
+fun h2(x:int):int = h(y) {where var y:arr[123] string}
+
