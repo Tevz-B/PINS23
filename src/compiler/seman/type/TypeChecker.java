@@ -40,12 +40,25 @@ public class TypeChecker implements Visitor {
 
     @Override
     public void visit(Call call) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        FunDef def = (FunDef) definitions.valueFor(call).get();
+        if (!types.valueFor(def).isPresent())
+            def.accept(this);
+        var funType = types.valueFor(def).get().asFunction().get();
+        if (call.arguments.size() != def.parameters.size())
+            err(call, "Function call error - argument count mismatch.");
+        for (int i = 0; i < call.arguments.size(); ++i) {
+            var a = call.arguments.get(i);
+            var pType = funType.parameters.get(i);
+            a.accept(this);
+            var aType = types.valueFor(a).get();
+            if (!aType.equals(pType))
+                err(call, "Function call error - " + (i+1) + ". argument is type '" + aType + "', but function parameter is type '" + pType + "'");
+        }
+        types.store(funType.returnType, call);
     }
 
     @Override
-    public void visit(Binary binary) {
+    public void visit(Binary binary) { // check if not void
         binary.left.accept(this);
         binary.right.accept(this);
         var l = types.valueFor(binary.left).get();
@@ -76,10 +89,10 @@ public class TypeChecker implements Visitor {
                     err_typ(binary, "Array expression error.", l, r);
                 break;
             case ASSIGN:
-                if (l.equals(r) && l.isAtom())
+                if (l.equals(r) && l.isAtom() && !l.isVoid())
                     binType = l;
                 else
-                    err_typ(binary, "Assign expression error - (not structuraly equal).", l, r);
+                    err_typ(binary, "Assign expression error - (type VOID or not structuraly equal).", l, r);
                 break;
             case EQ:
             case GEQ:
@@ -90,7 +103,7 @@ public class TypeChecker implements Visitor {
                 if (l.equals(r) && (l.isLog() || l.isInt()))
                     binType = new Type.Atom(Kind.LOG);
                 else
-                    err_typ(binary, "Comparrisson expression error.", l, r);
+                    err_typ(binary, "Comparrison expression error.", l, r);
                 break;
         }
         types.store(binType, binary);
@@ -98,14 +111,31 @@ public class TypeChecker implements Visitor {
 
     @Override
     public void visit(Block block) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        Type type = null;
+        for (int i = 0; i < block.expressions.size(); ++i) {
+            var e = block.expressions.get(i);
+            e.accept(this);
+            if (i == block.expressions.size() - 1)
+                type = types.valueFor(e).get();
+        }
+        types.store(type, block);
     }
 
     @Override
     public void visit(For forLoop) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        forLoop.counter.accept(this);
+        forLoop.low.accept(this);
+        forLoop.high.accept(this);
+        forLoop.step.accept(this);
+        forLoop.body.accept(this);
+        if (types.valueFor(forLoop.counter).get().isInt() &&
+            types.valueFor(forLoop.low).get().isInt() && 
+            types.valueFor(forLoop.high).get().isInt() &&
+            types.valueFor(forLoop.step).get().isInt()
+        )
+            types.store(new Type.Atom(Kind.VOID), forLoop);
+        else
+            err(forLoop, "FOR loop error - counter, low, high or step are not all type INT");
     }
 
     @Override
@@ -116,8 +146,14 @@ public class TypeChecker implements Visitor {
 
     @Override
     public void visit(IfThenElse ifThenElse) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        ifThenElse.condition.accept(this);
+        ifThenElse.thenExpression.accept(this);
+        if (ifThenElse.elseExpression.isPresent())
+            ifThenElse.elseExpression.get().accept(this);
+        if (types.valueFor(ifThenElse.condition).get().isLog())
+            types.store(new Type.Atom(Kind.VOID), ifThenElse);
+        else
+            err_typ(ifThenElse, "IF statement error - condition not logical type", types.valueFor(ifThenElse.condition).get(), null);
     }
 
     @Override
@@ -137,20 +173,40 @@ public class TypeChecker implements Visitor {
 
     @Override
     public void visit(Unary unary) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        unary.expr.accept(this);
+        var type = types.valueFor(unary.expr).get();
+        switch (unary.operator) {
+            case ADD:
+            case SUB:
+                if (type.isInt())
+                    types.store(type, unary);
+                else
+                    err_typ(unary, "Unary positive/negative error (+-expression)", type, null);
+                break;
+            case NOT:
+                if (type.isLog())
+                    types.store(type, unary);
+                 else 
+                    err_typ(unary, "Unary logical expression error (!expression)", type, null);
+                break;
+        }
     }
 
     @Override
     public void visit(While whileLoop) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        whileLoop.condition.accept(this);
+        whileLoop.body.accept(this);
+        if (types.valueFor(whileLoop.condition).get().isLog())
+            types.store(new Type.Atom(Kind.VOID), whileLoop);
+        else 
+            err_typ(whileLoop, "WHILE loop error - condition not logical type", types.valueFor(whileLoop.condition).get(), null);
     }
 
     @Override
     public void visit(Where where) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        where.defs.accept(this);
+        where.expr.accept(this);
+        types.store(types.valueFor(where.expr).get(), where);
     }
 
     @Override

@@ -1,3 +1,7 @@
+# todo rekurzivni tipi
+# todo rekurzivna funkcija
+# zadnji izraz v fun je for zanka (da vrne void)
+# array tudi prava velikost
 var x : int4;
 var  y : a;
 typ a : arr[123] int4;
@@ -7,4 +11,8 @@ typ int4 : int3;
 typ int3 : int2;
 typ int2 : int1;
 typ int1 : integer;
-fun f(x:integer, y:string):integer = x + 10 # +  test block
+fun f(x:integer, y:string):integer = (-x, +x,true & false, y, {for x = 0, 10, 2 : y }, x+x*2);   # +  test block
+fun g(x:integer, y:string):integer = f(y,x) {where var y:integer; var x:string};
+fun h(x:a):int = 5;
+fun h2(x:int):int = h(y) {where var y:arr[123] integer};
+fun f2(x:int):int = ({{while true : x+x} = {while false : 2}}, x)

@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import common.Constants; // uporabi wordSize, int = wordSize, za ostale 
+import common.Report;
 
 public abstract class Type {
     /**
@@ -60,6 +61,13 @@ public abstract class Type {
      */
     public boolean isInt() {
         return (this instanceof Atom a) && a.kind == Atom.Kind.INT;
+    }
+
+    /**
+     * Preveri, ali je tip `VOID`.
+     */
+    public boolean isVoid() {
+        return (this instanceof Atom a) && a.kind == Atom.Kind.VOID;
     }
 
     /**
@@ -135,8 +143,7 @@ public abstract class Type {
         public boolean equals(Type t) {
             if (t.isAtom())
                 return ((Atom) t).kind == this.kind;
-            else
-                throw new RuntimeException("Implementiraj ...");
+            return false;
         }
 
         @Override
@@ -196,7 +203,9 @@ public abstract class Type {
 
         @Override
         public boolean equals(Type t) {
-            throw new RuntimeException("Implementiraj ...");
+            if (t.isArray())
+                return (this.type.equals(((Array) t).type) && ((Array) t).size == this.size);
+            return false;
         }
 
         @Override
@@ -238,7 +247,8 @@ public abstract class Type {
 
         @Override
         public boolean equals(Type t) {
-            throw new RuntimeException("Implementiraj ...");
+            Report.error("Can't compare functions!");
+            return false;
         }
 
         @Override
