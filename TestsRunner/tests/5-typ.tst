@@ -40,6 +40,30 @@ fun voidf(x:int):int={while true: 5}
 99
 !end
 
+!code:
+fun nestedArr(x:arr[3] arr[4] arr[5] string):string = x[1][2][3];
+fun callNestedArr(x:integer):string = nestedArr(y) {where
+        var y : arr[3] arr[4] arr[5] integer} 
+!failure:
+99
+!end
+
+!code:
+fun nestedArr(x:arr[3] arr[4] arr[5] string):string = x[1][2][3];
+fun callNestedArr(x:integer):string = nestedArr(y) {where
+        var y : arr[3] arr[4] arr[4] string} 
+!failure:
+99
+!end
+
+!code:
+fun nestedArr(x:arr[3] arr[4] arr[5] string):integer = x[1][2][3];
+fun callNestedArr(x:integer):integer = nestedArr(y) {where
+        var y : arr[3] arr[4] arr[5] string}
+!failure:
+99
+!end
+
 -- !code:
 
 -- !failure:

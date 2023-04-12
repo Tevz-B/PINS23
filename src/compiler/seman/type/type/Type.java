@@ -131,12 +131,12 @@ public abstract class Type {
 
         @Override
         public int sizeInBytes() {
-            throw new RuntimeException("Implementiraj ...");
+            return this.kind.size; // TODO OK for strings?
         }
 
         @Override
         public int sizeInBytesAsParam() {
-            throw new RuntimeException("Implementiraj ...");
+            throw new RuntimeException("Implementiraj ..."); // ref or val
         }
 
         @Override
@@ -189,7 +189,8 @@ public abstract class Type {
 
         @Override
         public int sizeInBytes() {
-            throw new RuntimeException("Implementiraj ...");
+            return this.size * this.elementSizeInBytes();
+            
         }
 
         @Override

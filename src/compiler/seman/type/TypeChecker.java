@@ -61,7 +61,7 @@ public class TypeChecker implements Visitor {
     }
 
     @Override
-    public void visit(Binary binary) { // check if not void
+    public void visit(Binary binary) {
         binary.left.accept(this);
         binary.right.accept(this);
         var l = types.valueFor(binary.left).get();
@@ -280,7 +280,7 @@ public class TypeChecker implements Visitor {
     public void visit(TypeName name) { // poglej v globino kateri tip je
         var typeDef = definitions.valueFor(name).get();
         if (cycleCatch.contains(typeDef))
-            err(name, "Cyclic type definition");
+            err(name, "Cyclic type definition"); // ujemi cikel
         cycleCatch.add(typeDef);
         typeDef.accept(this); // izračunaj STRUKT tip za TypeDef (typDef -> TypName ->typDef -> TypName -> ... -> AtomType/ArrType)
         types.store(types.valueFor(typeDef).get(), name); // shrani strukturni tip za TypeName
