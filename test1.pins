@@ -1,2 +1,7 @@
-var x : integer;
-fun f ( y : integer ) : logical = x + y
+fun main(x:integer,y:arr[2]integer):integer = (
+    {s=f(y[0])},
+    x*s
+) { where
+    var s:integer;
+    fun f(a:integer):integer=a*2
+}

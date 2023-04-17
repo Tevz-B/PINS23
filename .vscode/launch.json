@@ -10,7 +10,7 @@
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINSCompiler_a1b3400d",
-            "args": ["PINS","./test0.pins","--dump", "TYP", "--exec", "TYP" ]
+            "args": ["PINS","./test0.pins","--dump", "FRM", "--exec", "FRM" ]
         },
         {
             "type": "java",
@@ -18,7 +18,7 @@
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINS23_76a31c49",
-            "args": ["PINS","./test0.pins","--dump", "TYP", "--exec", "TYP" ]
+            "args": ["PINS","./test1.pins","--dump", "FRM", "--exec", "FRM" ]
         },
     ]
 }

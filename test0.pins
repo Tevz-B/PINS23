@@ -1,21 +1,19 @@
-var x : int4;
-var  y : a;
-typ a : arr[123] int4;
-var y2 : arr[12] string;
-typ int : integer;
-typ int4 : int3;
-typ int3 : int2;
-typ int2 : int1;
-typ int1 : integer;
-fun f(x:integer, y:string):integer = (-x, +x,true & false, y, {for x = 0, 10, 2 : y }, x+x*2);   # +  test block
-fun g(x:integer, y:string):integer = f(y,x) {where var y:integer; var x:string};
-fun h(x:a):int = 5;
-fun h2(x:int):int = (h(y) {where var y:arr[123] integer},y2[5], 1);
-fun f2(x:int):int = ({x = 5}, x);
-fun r(x:int):int=r(x+1); #rekurzija
-fun voidf(x:int):int=5;
-fun nestedArr(x:arr[3] arr[4] arr[5] string):string = x[1][2][3];
-fun callNestedArr(x:integer):string = nestedArr(y) {where
-        var y : arr[3] arr[4] arr[5] string
-    };
-fun abc(x:int, y:int):logical=x<y | true < false
+# call() kot parameter?
+var y:integer;
+var x:integer;
+var list:arr[10] arr[10] log_t;
+typ log_t:logical;
+# fun f1(x:integer):integer = (
+#     v,
+#     g1(a[8]),
+#     x
+# ) {where var v:integer; 
+#        var v2:integer;
+#        var a:arr[10] arr[5] integer;
+#        fun g1(x:arr[5] integer):integer = x[0]
+#     }
+
+fun main (x:integer):integer = (
+    {y = 1},
+    x + y
+)

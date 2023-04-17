@@ -195,7 +195,7 @@ public abstract class Type {
 
         @Override
         public int sizeInBytesAsParam() {
-            throw new RuntimeException("Implementiraj ...");
+            return Constants.WordSize;
         }
 
         public int elementSizeInBytes() {

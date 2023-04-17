@@ -7,7 +7,12 @@ package compiler.frm;
 
 import static common.RequireNonNull.requireNonNull;
 
+import java.time.OffsetDateTime;
+import java.util.Stack;
+
 import compiler.common.Visitor;
+import compiler.frm.Access.Global;
+import compiler.frm.Frame.Builder;
 import compiler.parser.ast.def.*;
 import compiler.parser.ast.def.FunDef.Parameter;
 import compiler.parser.ast.expr.*;
@@ -38,6 +43,11 @@ public class FrameEvaluator implements Visitor {
      */
     private final NodeDescription<Type> types;
 
+    // private boolean globalScope;
+    // private int offset;
+    private int level;
+    private Stack<Builder> bs;
+
     public FrameEvaluator(
         NodeDescription<Frame> frames, 
         NodeDescription<Access> accesses,
@@ -49,26 +59,34 @@ public class FrameEvaluator implements Visitor {
         this.accesses = accesses;
         this.definitions = definitions;
         this.types = types;
+        // this.globalScope = true;
+        // this.offset = 0;
+        this.level = 0;
+        this.bs = new Stack<>();
     }
 
     @Override
     public void visit(Call call) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        int argSize = 0;
+        for (var arg : call.arguments) {
+            arg.accept(this); // need?
+            argSize += types.valueFor(arg).get().sizeInBytes();
+        }
+        bs.peek().addFunctionCall(argSize);
     }
 
 
     @Override
     public void visit(Binary binary) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        binary.left.accept(this);
+        binary.right.accept(this);
     }
 
 
     @Override
     public void visit(Block block) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        for (var e : block.expressions)
+            e.accept(this);
     }
 
 
@@ -81,8 +99,9 @@ public class FrameEvaluator implements Visitor {
 
     @Override
     public void visit(Name name) {
+        // var def = definitions.valueFor(name).get();
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
 
@@ -95,8 +114,7 @@ public class FrameEvaluator implements Visitor {
 
     @Override
     public void visit(Literal literal) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO what?
     }
 
 
@@ -116,43 +134,72 @@ public class FrameEvaluator implements Visitor {
 
     @Override
     public void visit(Where where) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        where.expr.accept(this);
+        where.defs.accept(this);
     }
 
 
     @Override
     public void visit(Defs defs) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        for (var d : defs.definitions)
+            d.accept(this);
     }
 
 
     @Override
     public void visit(FunDef funDef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        Frame.Label label;
+        if (level == 0) {
+            label = Frame.Label.named(funDef.name);
+        }
+        else {
+            label = Frame.Label.nextAnonymous();
+        }
+
+        bs.push(new Frame.Builder(label, level));
+        
+        ++level;
+        // ...
+        for (var p : funDef.parameters) {
+            p.accept(this);
+        }
+        funDef.body.accept(this);
+        // ...
+        --level;
+        var frame = bs.peek().build(); bs.pop();
+        frames.store(frame, funDef);
     }
 
 
     @Override
     public void visit(TypeDef typeDef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // nothing TODO
     }
 
 
     @Override
     public void visit(VarDef varDef) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        var size = types.valueFor(varDef).get().sizeInBytes();
+
+        Access access;
+        if (level == 0) {
+            access = new Access.Global(size, Frame.Label.named(varDef.name));
+        }
+        else {
+            int offset = bs.peek().addLocalVariable(size);
+            access = new Access.Local(size, offset, level);
+            offset += size; // maybe move offset increment one line up ?
+        }
+        accesses.store(access, varDef);
     }
 
 
     @Override
     public void visit(Parameter parameter) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        var size = types.valueFor(parameter).get().sizeInBytesAsParam();
+        int offset = bs.peek().addParameter(size);
+        var access = new Access.Parameter(size, offset, level);
+        accesses.store(access, parameter);
     }
 
 
