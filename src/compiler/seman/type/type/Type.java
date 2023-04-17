@@ -18,7 +18,7 @@ public abstract class Type {
     /**
      * Vrne velikost tipa v bytih.
      */
-    public abstract int sizeInBytes(); // ni se treba
+    public abstract int sizeInBytes(); 
 
     /**
      * Vrne velikost tipa, če je le-ta uporabljen kot parameter/argument.
@@ -26,7 +26,7 @@ public abstract class Type {
      * V primeru prenosa po referenci, je velikost tipa enaka
      * velikosti kazalca.
      */
-    public abstract int sizeInBytesAsParam(); // ni se treba
+    public abstract int sizeInBytesAsParam();
 
     /**
      * Ali tip strukturno enak drugemu tipu.
@@ -131,12 +131,12 @@ public abstract class Type {
 
         @Override
         public int sizeInBytes() {
-            return this.kind.size; // TODO OK for strings?
+            return this.kind.size;
         }
 
         @Override
-        public int sizeInBytesAsParam() {
-            throw new RuntimeException("Implementiraj ..."); // ref or val
+        public int sizeInBytesAsParam() { // TODO 
+            return Constants.WordSize;   // ref or val
         }
 
         @Override
@@ -237,7 +237,7 @@ public abstract class Type {
         }
 
         @Override
-        public int sizeInBytes() {
+        public int sizeInBytes() { 
             throw new RuntimeException("Implementiraj ...");
         }
 
