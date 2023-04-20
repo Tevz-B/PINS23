@@ -1,7 +1,6 @@
-fun main(x:integer,y:arr[2]integer):integer = (
-    {s=f(y[0])},
-    x*s
-) { where
-    var s:integer;
-    fun f(a:integer):integer=a*2
-}
+fun main(x:integer):integer = 
+    f(y) 
+    { where
+        var y:arr[20] integer;
+        fun f(a:arr[20] integer):integer=a[1] 
+    }

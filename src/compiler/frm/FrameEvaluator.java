@@ -10,6 +10,7 @@ import static common.RequireNonNull.requireNonNull;
 import java.time.OffsetDateTime;
 import java.util.Stack;
 
+import common.Constants;
 import compiler.common.Visitor;
 import compiler.frm.Access.Global;
 import compiler.frm.Frame.Builder;
@@ -43,10 +44,8 @@ public class FrameEvaluator implements Visitor {
      */
     private final NodeDescription<Type> types;
 
-    // private boolean globalScope;
-    // private int offset;
     private int level;
-    private Stack<Builder> bs;
+    private Stack<Builder> b;
 
     public FrameEvaluator(
         NodeDescription<Frame> frames, 
@@ -59,20 +58,18 @@ public class FrameEvaluator implements Visitor {
         this.accesses = accesses;
         this.definitions = definitions;
         this.types = types;
-        // this.globalScope = true;
-        // this.offset = 0;
         this.level = 1;
-        this.bs = new Stack<>();
+        this.b = new Stack<>();
     }
 
     @Override
     public void visit(Call call) { // rezerviramo plac za argumente
-        int argSize = 0;
+        int argSize = Constants.WordSize; // static link
         for (var arg : call.arguments) {
             arg.accept(this); // need?
-            argSize += types.valueFor(arg).get().sizeInBytes();
+            argSize += types.valueFor(arg).get().sizeInBytesAsParam();
         }
-        bs.peek().addFunctionCall(argSize);
+        b.peek().addFunctionCall(argSize);
     }
 
 
@@ -89,7 +86,7 @@ public class FrameEvaluator implements Visitor {
             e.accept(this);
     }
 
-
+    // FOR WHILE ITD BLOCKS!!!
     @Override
     public void visit(For forLoop) {
         // TODO Auto-generated method stub
@@ -148,56 +145,43 @@ public class FrameEvaluator implements Visitor {
 
     @Override
     public void visit(FunDef funDef) {
-        Frame.Label label;
-        if (level == 1) {
-            label = Frame.Label.named(funDef.name);
-        }
-        else {
-            label = Frame.Label.nextAnonymous();
-        }
-
-        bs.push(new Frame.Builder(label, level));
+        if (level == 1)
+            b.push(new Frame.Builder(Frame.Label.named(funDef.name), level));
+        else
+            b.push(new Frame.Builder(Frame.Label.nextAnonymous(), level));
         
         ++level;
-        // ...
+        b.peek().addParameter(Constants.WordSize); // static link
         for (var p : funDef.parameters) {
             p.accept(this);
         }
         funDef.body.accept(this);
-        // ...
         --level;
-        var frame = bs.peek().build(); bs.pop();
+        var frame = b.peek().build(); b.pop();
         frames.store(frame, funDef);
     }
 
 
     @Override
-    public void visit(TypeDef typeDef) {
-        // nothing TODO
-    }
+    public void visit(TypeDef typeDef) { /* nothing to do */ }
 
 
     @Override
     public void visit(VarDef varDef) {
         var size = types.valueFor(varDef).get().sizeInBytes();
-
-        Access access;
-        if (level == 1) {
-            access = new Access.Global(size, Frame.Label.named(varDef.name));
-        }
+        if (level == 1)
+            accesses.store(new Access.Global(size, Frame.Label.named(varDef.name)), varDef);
         else {
-            int offset = bs.peek().addLocalVariable(size);
-            access = new Access.Local(size, offset, level);
-            offset += size; // maybe move offset increment one line up ?
+            int offset = b.peek().addLocalVariable(size);
+            accesses.store(new Access.Local(size, offset, level), varDef);
         }
-        accesses.store(access, varDef);
     }
 
 
     @Override
     public void visit(Parameter parameter) {
         var size = types.valueFor(parameter).get().sizeInBytesAsParam();
-        int offset = bs.peek().addParameter(size);
+        int offset = b.peek().addParameter(size);
         var access = new Access.Parameter(size, offset, level);
         accesses.store(access, parameter);
     }
