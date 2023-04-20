@@ -136,7 +136,7 @@ public abstract class Type {
 
         @Override
         public int sizeInBytesAsParam() { // TODO 
-            return Constants.WordSize;   // ref or val
+            return sizeInBytes(); //Constants.WordSize;   // ref or val
         }
 
         @Override
@@ -195,7 +195,7 @@ public abstract class Type {
 
         @Override
         public int sizeInBytesAsParam() {
-            return Constants.WordSize;
+            return Constants.WordSize; // po referenci
         }
 
         public int elementSizeInBytes() {

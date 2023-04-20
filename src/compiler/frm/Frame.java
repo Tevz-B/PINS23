@@ -113,6 +113,9 @@ public class Frame {
 
     /**
      * Labela ('strojni naslov') v programu.
+     * -labela globalne spremenljivke je ime spremenljivke
+     * -labela globalne funkcije je ime funkcije
+     * -labela gnezndene funkcije je anonimna labela
      */
     public static class Label {
         /**

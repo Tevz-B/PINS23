@@ -61,12 +61,12 @@ public class FrameEvaluator implements Visitor {
         this.types = types;
         // this.globalScope = true;
         // this.offset = 0;
-        this.level = 0;
+        this.level = 1;
         this.bs = new Stack<>();
     }
 
     @Override
-    public void visit(Call call) {
+    public void visit(Call call) { // rezerviramo plac za argumente
         int argSize = 0;
         for (var arg : call.arguments) {
             arg.accept(this); // need?
@@ -149,7 +149,7 @@ public class FrameEvaluator implements Visitor {
     @Override
     public void visit(FunDef funDef) {
         Frame.Label label;
-        if (level == 0) {
+        if (level == 1) {
             label = Frame.Label.named(funDef.name);
         }
         else {
@@ -182,7 +182,7 @@ public class FrameEvaluator implements Visitor {
         var size = types.valueFor(varDef).get().sizeInBytes();
 
         Access access;
-        if (level == 0) {
+        if (level == 1) {
             access = new Access.Global(size, Frame.Label.named(varDef.name));
         }
         else {
