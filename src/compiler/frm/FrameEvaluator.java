@@ -67,7 +67,7 @@ public class FrameEvaluator implements Visitor {
         int argSize = Constants.WordSize; // static link
         for (var arg : call.arguments) {
             arg.accept(this); // need?
-            argSize += types.valueFor(arg).get().sizeInBytesAsParam();
+            argSize += types.valueFor(arg).get().sizeInBytes();
         }
         b.peek().addFunctionCall(argSize);
     }
@@ -86,46 +86,40 @@ public class FrameEvaluator implements Visitor {
             e.accept(this);
     }
 
-    // FOR WHILE ITD BLOCKS!!!
     @Override
     public void visit(For forLoop) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        forLoop.low.accept(this);
+        forLoop.high.accept(this);
+        forLoop.step.accept(this);
+        forLoop.body.accept(this);
     }
 
 
     @Override
-    public void visit(Name name) {
-        // var def = definitions.valueFor(name).get();
-        // TODO Auto-generated method stub
-        // throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public void visit(Name name) { /* nothing to do */ }
+
+
+    @Override
+    public void visit(IfThenElse ifThenElse) { 
+        ifThenElse.condition.accept(this);
+        ifThenElse.thenExpression.accept(this);
+        if (ifThenElse.elseExpression.isPresent())
+            ifThenElse.elseExpression.get().accept(this);
     }
 
 
     @Override
-    public void visit(IfThenElse ifThenElse) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
-    }
+    public void visit(Literal literal) { /* nothing to do */ }
 
 
     @Override
-    public void visit(Literal literal) {
-        // TODO what?
-    }
-
-
-    @Override
-    public void visit(Unary unary) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
-    }
+    public void visit(Unary unary) { unary.expr.accept(this); }
 
 
     @Override
     public void visit(While whileLoop) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        whileLoop.condition.accept(this);
+        whileLoop.body.accept(this);
     }
 
 
