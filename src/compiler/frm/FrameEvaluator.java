@@ -58,7 +58,7 @@ public class FrameEvaluator implements Visitor {
         this.accesses = accesses;
         this.definitions = definitions;
         this.types = types;
-        this.level = 1;
+        this.level = 0;
         this.b = new Stack<>();
     }
 
@@ -124,26 +124,25 @@ public class FrameEvaluator implements Visitor {
 
     @Override
     public void visit(FunDef funDef) {
-        if (level == 1)
-            b.push(new Frame.Builder(Frame.Label.named(funDef.name), level));
+        if (level == 0)
+            b.push(new Frame.Builder(Frame.Label.named(funDef.name), ++level));
         else
-            b.push(new Frame.Builder(Frame.Label.nextAnonymous(), level));
+            b.push(new Frame.Builder(Frame.Label.nextAnonymous(), ++level));
         
-        ++level;
         b.peek().addParameter(Constants.WordSize); // static link
         for (var p : funDef.parameters) {
             p.accept(this);
         }
         funDef.body.accept(this);
-        --level;
         var frame = b.peek().build(); b.pop();
         frames.store(frame, funDef);
+        --level;
     }
 
     @Override
     public void visit(VarDef varDef) {
         var size = types.valueFor(varDef).get().sizeInBytes();
-        if (level == 1)
+        if (level == 0)
             accesses.store(new Access.Global(size, Frame.Label.named(varDef.name)), varDef);
         else {
             int offset = b.peek().addLocalVariable(size);
@@ -166,7 +165,9 @@ public class FrameEvaluator implements Visitor {
     public void visit(Literal literal) { /* nothing to do */ }
 
     @Override
-    public void visit(Name name) { /* nothing to do */ }
+    public void visit(Name name) { 
+        definitions.valueFor
+    }
 
     @Override
     public void visit(Array array) {
