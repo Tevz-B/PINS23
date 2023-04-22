@@ -1,5 +1,5 @@
 /**
- * @ Author: turk
+ * @ Author: tevz
  * @ Description: Analizator klicnih zapisov.
  */
 
@@ -12,7 +12,6 @@ import java.util.Stack;
 
 import common.Constants;
 import compiler.common.Visitor;
-import compiler.frm.Access.Global;
 import compiler.frm.Frame.Builder;
 import compiler.parser.ast.def.*;
 import compiler.parser.ast.def.FunDef.Parameter;
@@ -159,11 +158,9 @@ public class FrameEvaluator implements Visitor {
     }
 
     @Override
-    public void visit(Name name) { 
-        // definitions.valueFor(name).get().accept(this);
-    }
+    public void visit(Name name) { /* nothing to do */ }
 
-        @Override
+    @Override
     public void visit(TypeDef typeDef) { /* nothing to do */ }
 
     @Override
@@ -171,19 +168,16 @@ public class FrameEvaluator implements Visitor {
 
     @Override
     public void visit(Array array) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
     @Override
     public void visit(Atom atom) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
     @Override
     public void visit(TypeName name) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 }

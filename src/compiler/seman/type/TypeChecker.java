@@ -1,5 +1,5 @@
 /**
- * @ Author: turk
+ * @ Author: tevz
  * @ Description: Preverjanje tipov.
  */
 
