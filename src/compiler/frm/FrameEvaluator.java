@@ -158,16 +158,18 @@ public class FrameEvaluator implements Visitor {
         accesses.store(access, parameter);
     }
 
+    @Override
+    public void visit(Name name) { 
+        definitions.valueFor(name).get().accept(this);
+    }
+
         @Override
     public void visit(TypeDef typeDef) { /* nothing to do */ }
 
     @Override
     public void visit(Literal literal) { /* nothing to do */ }
 
-    @Override
-    public void visit(Name name) { 
-        definitions.valueFor
-    }
+
 
     @Override
     public void visit(Array array) {
