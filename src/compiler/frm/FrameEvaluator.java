@@ -67,18 +67,16 @@ public class FrameEvaluator implements Visitor {
         int argSize = Constants.WordSize; // static link
         for (var arg : call.arguments) {
             arg.accept(this); // need?
-            argSize += types.valueFor(arg).get().sizeInBytes();
+            argSize += types.valueFor(arg).get().sizeInBytesAsParam();
         }
         b.peek().addFunctionCall(argSize);
     }
-
 
     @Override
     public void visit(Binary binary) {
         binary.left.accept(this);
         binary.right.accept(this);
     }
-
 
     @Override
     public void visit(Block block) {
@@ -94,11 +92,6 @@ public class FrameEvaluator implements Visitor {
         forLoop.body.accept(this);
     }
 
-
-    @Override
-    public void visit(Name name) { /* nothing to do */ }
-
-
     @Override
     public void visit(IfThenElse ifThenElse) { 
         ifThenElse.condition.accept(this);
@@ -106,11 +99,6 @@ public class FrameEvaluator implements Visitor {
         if (ifThenElse.elseExpression.isPresent())
             ifThenElse.elseExpression.get().accept(this);
     }
-
-
-    @Override
-    public void visit(Literal literal) { /* nothing to do */ }
-
 
     @Override
     public void visit(Unary unary) { unary.expr.accept(this); }
@@ -122,20 +110,17 @@ public class FrameEvaluator implements Visitor {
         whileLoop.body.accept(this);
     }
 
-
     @Override
     public void visit(Where where) {
         where.expr.accept(this);
         where.defs.accept(this);
     }
 
-
     @Override
     public void visit(Defs defs) {
         for (var d : defs.definitions)
             d.accept(this);
     }
-
 
     @Override
     public void visit(FunDef funDef) {
@@ -155,11 +140,6 @@ public class FrameEvaluator implements Visitor {
         frames.store(frame, funDef);
     }
 
-
-    @Override
-    public void visit(TypeDef typeDef) { /* nothing to do */ }
-
-
     @Override
     public void visit(VarDef varDef) {
         var size = types.valueFor(varDef).get().sizeInBytes();
@@ -171,7 +151,6 @@ public class FrameEvaluator implements Visitor {
         }
     }
 
-
     @Override
     public void visit(Parameter parameter) {
         var size = types.valueFor(parameter).get().sizeInBytesAsParam();
@@ -180,6 +159,14 @@ public class FrameEvaluator implements Visitor {
         accesses.store(access, parameter);
     }
 
+        @Override
+    public void visit(TypeDef typeDef) { /* nothing to do */ }
+
+    @Override
+    public void visit(Literal literal) { /* nothing to do */ }
+
+    @Override
+    public void visit(Name name) { /* nothing to do */ }
 
     @Override
     public void visit(Array array) {
@@ -187,13 +174,11 @@ public class FrameEvaluator implements Visitor {
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
-
     @Override
     public void visit(Atom atom) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
-
 
     @Override
     public void visit(TypeName name) {

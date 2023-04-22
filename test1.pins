@@ -1,6 +1,13 @@
 fun main(x:integer):integer = 
-    f(y) 
+    f(y)
     { where
         var y:arr[20] integer;
         fun f(a:arr[20] integer):integer=a[1] 
+    };
+
+var a : arr[10] integer;
+fun foo(x:integer):integer = 
+    f(a)
+    { where
+        fun f(a:arr[10] integer):integer=a[1] 
     }
