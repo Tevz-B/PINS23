@@ -112,8 +112,8 @@ public class FrameEvaluator implements Visitor {
 
     @Override
     public void visit(Where where) {
-        where.expr.accept(this);
         where.defs.accept(this);
+        where.expr.accept(this);
     }
 
     @Override
@@ -160,7 +160,7 @@ public class FrameEvaluator implements Visitor {
 
     @Override
     public void visit(Name name) { 
-        definitions.valueFor(name).get().accept(this);
+        // definitions.valueFor(name).get().accept(this);
     }
 
         @Override
@@ -168,8 +168,6 @@ public class FrameEvaluator implements Visitor {
 
     @Override
     public void visit(Literal literal) { /* nothing to do */ }
-
-
 
     @Override
     public void visit(Array array) {
