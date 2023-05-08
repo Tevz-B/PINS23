@@ -1,7 +1,4 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
@@ -10,7 +7,7 @@
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINSCompiler_a1b3400d",
-            "args": ["PINS","./test0.pins","--dump", "FRM", "--exec", "FRM" ]
+            "args": ["PINS","./test0.pins","--dump", "IMC", "--exec", "IMC" ]
         },
         {
             "type": "java",
@@ -18,7 +15,7 @@
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINS23_76a31c49",
-            "args": ["PINS","./test1.pins","--dump", "FRM", "--exec", "FRM" ]
+            "args": ["PINS","./test0.pins","--dump", "IMC", "--exec", "IMC" ]
         },
     ]
 }

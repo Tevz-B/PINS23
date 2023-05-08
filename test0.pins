@@ -1,19 +1,9 @@
-# call() kot parameter?
-var y:integer;
 var x:integer;
-var list:arr[10] arr[10] log_t;
-typ log_t:logical;
-# fun f1(x:integer):integer = (
-#     v,
-#     g1(a[8]),
-#     x
-# ) {where var v:integer; 
-#        var v2:integer;
-#        var a:arr[10] arr[5] integer;
-#        fun g1(x:arr[5] integer):integer = x[0]
-#     }
-
-fun main (x:integer):integer = (
-    {y = 1},
-    x + y
-)
+fun f(a:integer):integer = 
+    ({x=1},{b=2},{c=3}, -x + 10 - a + b*c)
+    {where var b:integer; var c:integer}
+# ;
+# fun main(a:string, b:integer) : integer = (
+#     {c = a}, b + 2 * 3
+#     # {list[0] = 2}
+# ) {where var c:string}
