@@ -1,0 +1,8 @@
+fun f1(p1:integer):integer=
+    f2(1)
+    {where fun f2(p2:integer):integer= 
+        (f3(3),
+        f22(0))
+        {where fun f3(p3:integer):integer=
+            f1(0)};
+    fun f22(p2:integer):integer=22} 

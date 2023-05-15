@@ -7,6 +7,10 @@ package compiler.seman.name;
 
 import static common.RequireNonNull.requireNonNull;
 
+import java.util.Arrays;
+import java.util.List;
+
+import common.Constants;
 import common.Report;
 import compiler.common.Visitor;
 import compiler.lexer.Position;
@@ -55,8 +59,10 @@ public class NameChecker implements Visitor {
                 if (def.get() instanceof FunDef) 
                     definitions.store(def.get(), call);
                 else err_type(call.position, call.name, "function");
-            } 
-            else err_nodef(call.position, call.name);
+            }
+            else
+                handleStdFunction(call);
+            
             // resolve args
             for (var arg : call.arguments)
                 arg.accept(this);
@@ -225,5 +231,41 @@ public class NameChecker implements Visitor {
 
     private void err_type(Position pos, String name, String correctType) {
         Report.error(pos, "Name Resolve Error: Identifier '" + name + "' is not defined as '" + correctType + "'!");
+    }
+
+    private void handleStdFunction(Call call) {
+        if (Arrays.asList(
+                Constants.printStringLabel,
+                Constants.printIntLabel,
+                Constants.printLogLabel,
+                Constants.randIntLabel,
+                Constants.seedLabel
+            ).contains(call.name)) {
+                var p0 = Position.zero();
+                List<Parameter> parameters;
+                switch(call.name) {
+                    case Constants.printStringLabel:
+                        parameters = Arrays.asList(new Parameter(p0, "STR", Atom.STR(p0)));
+                        definitions.store(new FunDef(p0, call.name, parameters, Atom.STR(p0), new Literal(p0, "STD::RETURN", Atom.Type.STR)), call);
+                        break;
+                    case Constants.printIntLabel:
+                        parameters = Arrays.asList(new Parameter(p0, "INT", Atom.INT(p0)));
+                        definitions.store(new FunDef(p0, call.name, parameters, Atom.INT(p0), new Literal(p0, "STD::RETURN", Atom.Type.INT)), call);
+                        break;
+                    case Constants.printLogLabel:
+                        parameters = Arrays.asList(new Parameter(p0, "LOG", Atom.LOG(p0)));
+                        definitions.store(new FunDef(p0, call.name, parameters, Atom.LOG(p0), new Literal(p0, "STD::RETURN", Atom.Type.LOG)), call);
+                        break;
+                    case Constants.randIntLabel:
+                        parameters = Arrays.asList(new Parameter(p0, "INT", Atom.INT(p0)), new Parameter(p0, "INT", Atom.INT(p0)));
+                        definitions.store(new FunDef(p0, call.name, parameters, Atom.INT(p0), new Literal(p0, "STD::RETURN", Atom.Type.INT)), call);
+                        break;
+                    case Constants.seedLabel:
+                        parameters = Arrays.asList(new Parameter(p0, "INT", Atom.INT(p0)));
+                        definitions.store(new FunDef(p0, call.name, parameters, Atom.INT(p0), new Literal(p0, "STD::RETURN", Atom.Type.INT)), call);
+                        break;
+                }
+            }
+            else err_nodef(call.position, call.name);
     }
 }

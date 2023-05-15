@@ -1,0 +1,7 @@
+var g_list : arr[2] arr[3] arr[4] integer;
+var l1 : arr[4] integer;
+fun f1(p1:integer):integer
+=(
+    { p1=g_list[1][1][2] }    
+    , g_list[0][2][3]
+)
