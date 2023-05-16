@@ -69,7 +69,7 @@ public class IRCodeGenerator implements Visitor {
      */
     private int sl = 1;
 
-    private static boolean ARRAYS_AS_REF = true;
+    private static boolean ARRAYS_AS_REF = false;
 
     public IRCodeGenerator(
         NodeDescription<IRNode> imcCode,

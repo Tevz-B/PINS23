@@ -1,0 +1,12 @@
+var x:integer;
+var str:string;
+# fun test(a:integer):string='bla'
+fun f(a:integer):integer = 
+    ({x=1},{x=x+1},{b=2},{c=3}, -x + 10 - a + b*c)
+    {where var b:integer; var c:integer}
+# ;
+# fun main(a:string, b:integer) : integer = (
+#     {c = a}, b + 2 * 3
+#     # {list[0] = 2}
+# ) {where var c:string}
+# fun test(a:integer):string='bla'
