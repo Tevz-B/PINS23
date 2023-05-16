@@ -3,7 +3,8 @@ var str2: string;
 fun main(arg0:integer):integer=(
     {str='hello ''world2'''},
     {str2 = str},
-    {str='heja'},
+    {str='narobe'},
     print_str(str2),
     0
 )
+#"hello 'world'"

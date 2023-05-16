@@ -171,7 +171,38 @@ public class Interpreter {
     }
 
     private Object execute(BinopExpr binop, Map<Frame.Temp, Object> temps) {
-        throw new UnsupportedOperationException("Unimplemented method 'execute'");
+        int left = toInt(execute(binop.lhs, temps));
+        int right = toInt(execute(binop.rhs, temps));
+        switch(binop.op) {
+            case ADD:
+                return left + right;
+            case AND:
+                return left & right;
+            case DIV:
+                return left / right;
+            case EQ:
+                return left == right ? 1 : 0;
+            case GEQ:
+                return left >= right ? 1 : 0;
+            case GT:
+                return left > right ? 1 : 0;
+            case LEQ:
+                return left <= right ? 1 : 0;
+            case LT:
+                return left < right ? 1 : 0;
+            case MOD:
+                return left % right;
+            case MUL:
+                return left * right;
+            case NEQ:
+                return left != right ? 1 : 0;
+            case OR:
+                return left | right;
+            case SUB:
+                return left - right;
+            default:
+                throw new RuntimeException("Binop returned null");
+        }
     }
 
     private Object execute(CallExpr call, Map<Frame.Temp, Object> temps) {

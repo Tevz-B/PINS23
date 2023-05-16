@@ -1,10 +1,34 @@
-var x : integer;
-var y : integer;
+typ bool : logical;
+var x : bool;
+var y : bool;
 fun main(arg0:integer):integer=(
-    {x = 42},
-    {y = 100},
-    {y = y + x + y},
-    print_int(y),
-    print_int(5),
+    {x = false},
+    {y = false},
+    {y = y & x},
+    print_log(y),
+    {x = true},
+    {y = y & x},
+    print_log(y),
+    {y = true},
+    {y = y & x},
+    print_log(y),
+    print_log(true),
+    {x = false},
+    {y = false},
+    {y = y | x},
+    print_log(y),
+    {x = true},
+    {y = y | x},
+    print_log(y),
+    {y = true},
+    {y = y | x},
+    print_log(y),
     0
 )
+# false
+# false
+# true
+# true
+# false
+# true
+# true
