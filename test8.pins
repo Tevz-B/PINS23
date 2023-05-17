@@ -1,34 +1,8 @@
-typ bool : logical;
-var x : bool;
-var y : bool;
+var x:integer;
 fun main(arg0:integer):integer=(
-    {x = false},
-    {y = false},
-    {y = y & x},
-    print_log(y),
-    {x = true},
-    {y = y & x},
-    print_log(y),
-    {y = true},
-    {y = y & x},
-    print_log(y),
-    print_log(true),
-    {x = false},
-    {y = false},
-    {y = y | x},
-    print_log(y),
-    {x = true},
-    {y = y | x},
-    print_log(y),
-    {y = true},
-    {y = y | x},
-    print_log(y),
+    {x = f(33)},
     0
+);
+fun f(a:integer):integer=(
+    a + 33
 )
-# false
-# false
-# true
-# true
-# false
-# true
-# true

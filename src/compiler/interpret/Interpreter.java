@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import common.Constants;
@@ -67,9 +68,6 @@ public class Interpreter {
         memory.stM(framePointer + Constants.WordSize, 0); // argument v funkcijo main
         memory.stM(framePointer - chunk.frame.oldFPOffset(), framePointer); // oldFP
 
-        memory.registerLabel(fp(), framePointer);
-        memory.registerLabel(sp(), stackPointer);
-
         internalInterpret(chunk, new HashMap<>());
     }
 
@@ -97,7 +95,8 @@ public class Interpreter {
         }
 
         stackPointer = framePointer;
-        framePointer += chunk.frame.oldFPOffset();
+        framePointer += chunk.frame.oldFPOffset(); // ? maybe load from memory
+        //  framePointer = memory.ldM(framePointer + oldFp)
     }
 
     private Object execute(IRStmt stmt, Map<Frame.Temp, Object> temps) {
@@ -143,7 +142,7 @@ public class Interpreter {
         else if (move.dst instanceof TempExpr tempExpr)  {
             var src = execute(move.src, temps);
             memory.stT(tempExpr.temp, src);
-            return src; // Check if OK!
+            return src; 
         }
         else {
             throw new RuntimeException("unexpected MOVE left child!");
@@ -241,7 +240,18 @@ public class Interpreter {
             // internalInterpret(chunk, new HashMap<>())
             //                          ~~~~~~~~~~~~~ 'lokalni registri'
             // ...
-            throw new UnsupportedOperationException("Unimplemented method 'execute'");
+            List<Object> args = new ArrayList<>(call.args.size());
+            for (IRExpr a : call.args) {
+                args.add(execute(a, temps));
+            }
+            for (Object a : args) {
+                // do nothing
+            }
+            memory.stM(framePointer + Constants.WordSize, 0); // arguments
+            memory.stM(framePointer - chunk.frame.oldFPOffset(), framePointer); // oldFP
+    
+            internalInterpret(chunk, new HashMap<>());
+            return memory.ldM(stackPointer + Constants.WordSize);
         } else {
             throw new RuntimeException("Only functions can be called!");
         }
@@ -302,13 +312,5 @@ public class Interpreter {
 
     private void prettyPrint(IRNode ir) {
         System.out.println(prettyDescription(ir));
-    }
-
-    private static Frame.Label fp() {
-        return Frame.Label.named(Constants.framePointer);
-    }
-
-    private static Frame.Label sp() {
-        return Frame.Label.named(Constants.stackPointer);
     }
 }
