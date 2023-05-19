@@ -15,7 +15,7 @@
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINS23_76a31c49",
-            "args": ["PINS","./temp.pins","--dump", "INT", "--exec", "INT" ],
+            "args": ["PINS","./temp2.pins","--dump", "INT", "--exec", "INT" ],
         },
     ]
 }

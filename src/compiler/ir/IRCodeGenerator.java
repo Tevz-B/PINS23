@@ -109,7 +109,11 @@ public class IRCodeGenerator implements Visitor {
             BinopExpr.Operator op = BinopExpr.Operator.values()[binary.operator.ordinal()];
             imcCode.store(new BinopExpr(imcLeft, imcRight, op), binary);
         } else if (binary.operator == Binary.Operator.ASSIGN) {
-            var eseq = assign(imcLeft, imcRight);
+            EseqExpr eseq;
+            // if (types.valueFor(binary.left).get().isArray())
+            //     eseq = assign(new MemExpr(imcLeft), imcRight);
+            // else
+            eseq = assign(imcLeft, imcRight);
             imcCode.store(eseq, binary);
         } else if (binary.operator == Binary.Operator.ARR) { // test Arr[123]
             Type.Array t = (Type.Array) types.valueFor(binary.left).get().asArray().get();
@@ -167,35 +171,27 @@ public class IRCodeGenerator implements Visitor {
 
     @Override
     public void visit(Name name) {
-        IRExpr rez;
+        IRExpr rez = null;
         var def = definitions.valueFor(name).get();
         var a = accesses.valueFor(def).get();
-        if (a instanceof Access.Global) {
-            Access.Global access = (Access.Global) a;
-            rez = new MemExpr(new NameExpr(access.label));
+        if (a instanceof Access.Global access) {
+            if (types.valueFor(name).get().isArray())
+                rez = new NameExpr(access.label);
+            else
+                rez = new MemExpr(new NameExpr(access.label));
         } else {
-            if (a instanceof Access.Local) {
-                var access = (Access.Local) a;
+            if (a instanceof Access.Stack access) {
                 // pridobi razliko staticnih nivojev
                 int deltaSL = sl - access.staticLevel; // currentSL - definitionSL
-
+  
                 IRExpr addr = NameExpr.FP();
                 for (int i = 0; i < deltaSL; ++i) {
                     addr = new MemExpr(addr);
                 }
                 var offset = new BinopExpr(addr, new ConstantExpr(access.offset), BinopExpr.Operator.ADD);
                 rez = new MemExpr(offset);
-            } else {
-                var access = (Access.Parameter) a;
-                // pridobi razliko staticnih nivojev
-                int deltaSL = sl - access.staticLevel; // currentSL - definitionSL
-
-                IRExpr addr = NameExpr.FP();
-                for (int i = 0; i < deltaSL; ++i) {
-                    addr = new MemExpr(addr);
-                }
-                var offset = new BinopExpr(addr, new ConstantExpr(access.offset), BinopExpr.Operator.ADD);
-                rez = new MemExpr(offset); 
+                if (types.valueFor(name).get().isArray())
+                    rez = new MemExpr(rez);
             }
         }
         imcCode.store(rez, name);

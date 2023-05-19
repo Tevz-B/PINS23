@@ -1,26 +1,9 @@
+var a:arr[5]integer;
 fun main(x: integer): integer = (
-  { x = 1 },
-  # { w = 4 },
-  g(555),
-  0
-) { where
-  # var w: integer;
-  fun g(y: integer): integer = (
-    print_int(x),
-    # print_int(y),
-    # print_int(w),
-    0
-  )
-}
-
-# 1
-# 2
-# 3
-# 4
-# 5
-# #GOT
-# 3
-# 3
-# 3
-# 1004
-# 1004 ... else OK
+  { a[0] = 11 },
+  { a[1] = 21 },
+  { a[2] = 31 },
+  { a[3] = 41 },
+  { a[4] = 51 },
+  print_int(a[2])
+) 
