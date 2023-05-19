@@ -190,8 +190,10 @@ public class IRCodeGenerator implements Visitor {
                 }
                 var offset = new BinopExpr(addr, new ConstantExpr(access.offset), BinopExpr.Operator.ADD);
                 rez = new MemExpr(offset);
-                if (types.valueFor(name).get().isArray())
+                if (types.valueFor(name).get().isArray() && access instanceof Access.Parameter)
                     rez = new MemExpr(rez);
+                else if (types.valueFor(name).get().isArray())
+                    rez = ((MemExpr)rez).expr;
             }
         }
         imcCode.store(rez, name);
