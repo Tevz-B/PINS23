@@ -1,32 +1,62 @@
+typ list: arr[10] integer;
+var l: integer;
+var array: list;
+
 fun main(x: integer): integer = (
-  { x = 1 },
-  { w = 4 },
-  g(2),
+  { l = 10 },
+  fill_array(array, l, 69),
+  print_array(array, l),
+  fill_array2(array, l, 0),
+  print_array(array, l),
+  0
+);
+
+fun fill_array(a: list, l: integer, x: integer): integer = (
+  { i = 0 },
+  { while i < l: (
+      { a[i] = x },
+      { i = i + 1 }
+  )},
   0
 ) { where
-  var w: integer;
-  fun g(y: integer): integer = (
-    f(3),
-    0
-  ) { where
-    fun f(z: integer): integer = (
-      print_int(x),
-      print_int(y),
-      print_int(z),
-      print_int(w),
-      0
-    )
-  }
-}
+  var i: integer
+};
 
+fun fill_array2(a: list, l: integer, x: integer): integer = (
+  { for i = x, l, 1:
+      { a[i] = i }
+  },
+  0
+) { where
+  var i: integer
+};
+
+fun print_array(a: list, l:integer): integer = (
+  { for i = 0, l, 1:
+      print_int(a[i])
+  },
+  0
+) { where
+  var i: integer
+}
+# 69
+# 69
+# 69
+# 69
+# 69
+# 69
+# 69
+# 69
+# 69
+# 69
+# 0
 # 1
 # 2
 # 3
 # 4
 # 5
-# #GOT
-# 3
-# 3
-# 3
-# 1004
-# 1004 ... else OK
+# 6
+# 7
+# 8
+# 9
+# GOT: 1
