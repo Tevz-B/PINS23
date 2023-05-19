@@ -1,8 +1,13 @@
-var x:integer;
-fun main(arg0:integer):integer=(
-    f(33),
-    0
-);
-fun f(a:integer):integer=(
-    print_int(a)
+var n:integer;
+var result:integer;
+fun main(argc : integer) : integer = (
+    {n=1},
+    {
+        if n <= 1 then
+            { result = n }
+        else
+            { result = 99 }
+    },
+    result
 )
+# {where var result:integer}

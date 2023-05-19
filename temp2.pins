@@ -1,0 +1,98 @@
+FRAME [fib]: level=1,locals_size=4,arguments_size=8,parameters_size=8,size=16
+MOVE:
+  MEM:
+    NAME: {FP}
+  ESEQ:
+    SEQ:
+      SEQ:
+        CJUMP:
+          BINOP LEQ:
+            MEM:
+              BINOP ADD:
+                NAME: {FP}
+                CONSTANT: 4
+            CONSTANT: 1
+          L[0]
+          L[2]
+        LABEL: L[0]
+        EXP:
+          ESEQ:
+            MOVE:
+              MEM:
+                BINOP ADD:
+                  NAME: {FP}
+                  CONSTANT: -4
+              MEM:
+                BINOP ADD:
+                  NAME: {FP}
+                  CONSTANT: 4
+            MEM:
+              BINOP ADD:
+                NAME: {FP}
+                CONSTANT: -4
+        JUMP:
+          L[1]
+        LABEL: L[2]
+        EXP:
+          ESEQ:
+            MOVE:
+              MEM:
+                BINOP ADD:
+                  NAME: {FP}
+                  CONSTANT: -4
+              BINOP ADD:
+                ESEQ:
+                  MOVE:
+                    MEM:
+                      BINOP SUB:
+                        NAME: {SP}
+                        CONSTANT: 8
+                    NAME: {FP}
+                  CALL fib:
+                    CONSTANT: -1
+                    BINOP SUB:
+                      MEM:
+                        BINOP ADD:
+                          NAME: {FP}
+                          CONSTANT: 4
+                      CONSTANT: 1
+                ESEQ:
+                  MOVE:
+                    MEM:
+                      BINOP SUB:
+                        NAME: {SP}
+                        CONSTANT: 8
+                    NAME: {FP}
+                  CALL fib:
+                    CONSTANT: -1
+                    BINOP SUB:
+                      MEM:
+                        BINOP ADD:
+                          NAME: {FP}
+                          CONSTANT: 4
+                      CONSTANT: 2
+            MEM:
+              BINOP ADD:
+                NAME: {FP}
+                CONSTANT: -4
+        LABEL: L[1]
+    MEM:
+      BINOP ADD:
+        NAME: {FP}
+        CONSTANT: -4
+FRAME [main]: level=1,locals_size=0,arguments_size=8,parameters_size=8,size=12
+MOVE:
+  MEM:
+    NAME: {FP}
+  CALL print_int:
+    CONSTANT: -1
+    ESEQ:
+      MOVE:
+        MEM:
+          BINOP SUB:
+            NAME: {SP}
+            CONSTANT: 8
+        NAME: {FP}
+      CALL fib:
+        CONSTANT: -1
+        CONSTANT: 9

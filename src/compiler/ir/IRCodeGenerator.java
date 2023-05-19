@@ -90,7 +90,7 @@ public class IRCodeGenerator implements Visitor {
         if (!(lvalue instanceof MemExpr) && !(lvalue instanceof TempExpr))
             Report.error("Assign Error: lvalue not writable");
         MoveStmt mv = new MoveStmt(lvalue, rvalue);
-        return new EseqExpr(mv, rvalue);
+        return new EseqExpr(mv, lvalue);
     }
 
     @Override
@@ -118,15 +118,16 @@ public class IRCodeGenerator implements Visitor {
                     Report.error(binary.position, "Array index is larger than array size!");
             }
             if (ARRAYS_AS_REF) {
-                IRExpr address;
-                if (t.type.isArray()) {
-                    address = ((MemExpr) imcLeft).expr;
-                } else {
-                    address = imcLeft;
-                }
-                IRExpr offset = new BinopExpr(imcRight, new ConstantExpr(Constants.WordSize), Operator.MUL);
-                IRExpr indexAddr = new BinopExpr(address, offset, Operator.ADD);
-                imcCode.store(new MemExpr(indexAddr), binary);
+                Report.error("ARRAYS_AS_REF set to true!");
+                // IRExpr address;
+                // if (t.type.isArray()) {
+                //     address = ((MemExpr) imcLeft).expr;
+                // } else {
+                //     address = imcLeft;
+                // }
+                // IRExpr offset = new BinopExpr(imcRight, new ConstantExpr(Constants.WordSize), Operator.MUL);
+                // IRExpr indexAddr = new BinopExpr(address, offset, Operator.ADD);
+                // imcCode.store(new MemExpr(indexAddr), binary);
             } else {
                 var address = ((MemExpr) imcLeft).expr;
                 IRExpr offset = new BinopExpr(imcRight, new ConstantExpr(t.elementSizeInBytes()), Operator.MUL);
@@ -349,7 +350,7 @@ public class IRCodeGenerator implements Visitor {
 
         var def = definitions.valueFor(call).get();
         if (frames.valueFor(def).isEmpty()) {  // std functions
-            argv.add(0, NameExpr.FP());
+            argv.add(0, new ConstantExpr(-1));
             imcCode.store(new CallExpr(Label.named(call.name), argv), call);
             return;
         }
@@ -362,10 +363,15 @@ public class IRCodeGenerator implements Visitor {
          * Ce funkcija klice sebe / isti nivo ->   za Static link poda svoj Static Link               - MEM(FP)         MEMS:1   deltaSL = 0
          * Ce funkcija klice zunanjo funkcijo ->  za Static link poda FP od klicane zunanje funkcije  - MEM(MEM( ... (FP)) MEMS:2+  deltaSL + 1
         */
-        int deltaSL = sl - frm.staticLevel;
-        IRExpr staticLink = NameExpr.FP();
-        for (int i = 0; i <= deltaSL; i++) {
-            staticLink = new MemExpr(staticLink);
+        IRExpr staticLink;
+        if (sl <= 1)
+            staticLink = new ConstantExpr(-1);
+        else {
+            int deltaSL = sl - frm.staticLevel;
+            staticLink = NameExpr.FP();
+            for (int i = 0; i <= deltaSL; i++) {
+                staticLink = new MemExpr(staticLink);
+            }
         }
         argv.add(0, staticLink);
         CallExpr callExpr = new CallExpr(frm.label, argv);

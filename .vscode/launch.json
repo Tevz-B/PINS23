@@ -15,7 +15,8 @@
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINS23_76a31c49",
-            "args": ["PINS","./test8.pins","--dump", "INT", "--exec", "INT" ]
+            "args": ["PINS","./test7.pins","--dump", "INT", "--exec", "INT" ],
         },
     ]
 }
+//LEX, SYN ,AST, TYP, NAME, FRM, IMC, INT

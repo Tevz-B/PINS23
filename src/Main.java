@@ -148,7 +148,6 @@ public class Main {
         if (!cli.dumpPhases.contains(Phase.INT)) {
             return;
         }
-        new IRPrettyPrint(System.out, 2).print(generator.chunks); // todo remove
         /**
          * Izvajanje vmesne kode.
          */

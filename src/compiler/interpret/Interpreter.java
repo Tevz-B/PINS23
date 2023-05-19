@@ -12,6 +12,7 @@ import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.Optional;
 import java.util.Random;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -94,9 +95,6 @@ public class Interpreter {
             throw new RuntimeException("Linearize code!");
         }
 
-        stackPointer = framePointer;
-        framePointer += chunk.frame.oldFPOffset(); // ? maybe load from memory
-        //  framePointer = memory.ldM(framePointer + oldFp)
     }
 
     private Object execute(IRStmt stmt, Map<Frame.Temp, Object> temps) {
@@ -116,7 +114,13 @@ public class Interpreter {
     }
 
     private Object execute(CJumpStmt cjump, Map<Frame.Temp, Object> temps) {
-        throw new UnsupportedOperationException("Unimplemented method 'execute'");
+        int condition = toInt(execute(cjump.condition, temps));
+        if (condition == 1) {
+            return cjump.thenLabel;
+        } else if (condition == 0) {
+            return cjump.elseLabel;
+        } else
+            throw new RuntimeException("Condition is not logical value (not 1 or 0)");
     }
 
     private Object execute(ExpStmt exp, Map<Frame.Temp, Object> temps) {
@@ -124,7 +128,7 @@ public class Interpreter {
     }
 
     private Object execute(JumpStmt jump, Map<Frame.Temp, Object> temps) {
-        throw new UnsupportedOperationException("Unimplemented method 'execute'");
+        return jump.label;
     }
 
     private Object execute(MoveStmt move, Map<Frame.Temp, Object> temps) {
@@ -141,7 +145,8 @@ public class Interpreter {
         } 
         else if (move.dst instanceof TempExpr tempExpr)  {
             var src = execute(move.src, temps);
-            memory.stT(tempExpr.temp, src);
+            temps.put(tempExpr.temp, src);
+            // memory.stT(tempExpr.temp, src);
             return src; 
         }
         else {
@@ -244,14 +249,18 @@ public class Interpreter {
             for (IRExpr a : call.args) {
                 args.add(execute(a, temps));
             }
+
+            int i = 0; // maybe 1?
             for (Object a : args) {
-                // do nothing
+                memory.stM(stackPointer + Constants.WordSize * i++, a); // arguments
             }
-            memory.stM(framePointer + Constants.WordSize, 0); // arguments
-            memory.stM(framePointer - chunk.frame.oldFPOffset(), framePointer); // oldFP
+            // memory.stM(stackPointer - chunk.frame.oldFPOffset(), framePointer); // oldFP - naredi ze IMC
     
             internalInterpret(chunk, new HashMap<>());
-            return memory.ldM(stackPointer + Constants.WordSize);
+            
+            stackPointer = framePointer;
+            framePointer = toInt(memory.ldM(stackPointer - chunk.frame.oldFPOffset())); // retrieve oldFP
+            return memory.ldM(stackPointer);
         } else {
             throw new RuntimeException("Only functions can be called!");
         }
@@ -262,7 +271,7 @@ public class Interpreter {
     }
 
     private Object execute(MemExpr mem, Map<Frame.Temp, Object> temps) {
-        var addr = toInt(execute(mem.expr, temps));
+        int addr = toInt(execute(mem.expr, temps));
         return memory.ldM(addr);
     }
 
@@ -275,7 +284,7 @@ public class Interpreter {
     }
 
     private Object execute(TempExpr temp, Map<Frame.Temp, Object> temps) {
-            return memory.ldT(temp.temp);
+            return temps.get(temp.temp);
         }
 
     // ----------- pomožne funkcije -----------
