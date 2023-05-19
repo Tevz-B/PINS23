@@ -1,8 +1,8 @@
 var x:integer;
 fun main(arg0:integer):integer=(
-    {x = f(33)},
+    f(33),
     0
 );
 fun f(a:integer):integer=(
-    a + 33
+    print_int(a)
 )
