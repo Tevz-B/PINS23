@@ -183,7 +183,7 @@ public class IRCodeGenerator implements Visitor {
                 for (int i = 0; i < deltaSL; ++i) {
                     addr = new MemExpr(addr);
                 }
-                var offset = new BinopExpr(NameExpr.FP(), new ConstantExpr(access.offset), BinopExpr.Operator.ADD);
+                var offset = new BinopExpr(addr, new ConstantExpr(access.offset), BinopExpr.Operator.ADD);
                 rez = new MemExpr(offset);
             } else {
                 var access = (Access.Parameter) a;
@@ -194,7 +194,7 @@ public class IRCodeGenerator implements Visitor {
                 for (int i = 0; i < deltaSL; ++i) {
                     addr = new MemExpr(addr);
                 }
-                var offset = new BinopExpr(NameExpr.FP(), new ConstantExpr(access.offset), BinopExpr.Operator.ADD);
+                var offset = new BinopExpr(addr, new ConstantExpr(access.offset), BinopExpr.Operator.ADD);
                 rez = new MemExpr(offset); 
             }
         }
@@ -364,7 +364,7 @@ public class IRCodeGenerator implements Visitor {
          * Ce funkcija klice zunanjo funkcijo ->  za Static link poda FP od klicane zunanje funkcije  - MEM(MEM( ... (FP)) MEMS:2+  deltaSL + 1
         */
         IRExpr staticLink;
-        if (sl <= 1)
+        if (frm.staticLevel <= 1)
             staticLink = new ConstantExpr(-1);
         else {
             int deltaSL = sl - frm.staticLevel;
