@@ -1,89 +1,35 @@
-typ matrixTyp : arr[3] arr[3] integer;
+typ arr2dim: arr[2] arr[10] integer;
+var a: arr2dim;
 
-fun matrix_generate(matrix : matrixTyp, n : integer) : logical = (
-        { for i = 0, n, 1 :
-                { for j = 0, n, 1 :
-                        { matrix[i][j] = rand_int(0, 100) }
-                } { where var j : integer }
-        } { where var i : integer },
-        true
+fun main(x: integer): integer = (
+    fill_array(a[0], 0),
+    fill_array(a[1], 10),
+    print_arr(a),
+    0
 );
 
-fun matrix_zero(matrix : matrixTyp, n : integer) : logical = (
-        { for i = 0, n, 1 :
-                { for j = 0, n, 1 :
-                        { matrix[i][j] = 0 }
-                } { where var j : integer }
-        } { where var i : integer },
-        true
-);
+fun fill_array(a: arr[10] integer, x: integer): integer = (
+    { for i = 0, 10, 1:
+        { a[i] = x + i }
+    },
+    0
+) { where 
+    var i: integer
+};
 
-fun matrix_multiply(matrix1 : matrixTyp, matrix2 : matrixTyp, output : matrixTyp, n : integer) : logical = (
-        { for i = 0, n, 1 :
-                { for j = 0, n, 1 :
-                        { for k = 0, n, 1 :
-                                { output[i][j] = output[i][j] + matrix1[i][k] * matrix2[k][j] }
-                        } { where var k : integer }
-                } { where var j : integer }
-        } { where var i : integer },
-        true
-);
-
-fun matrix_print(matrix : matrixTyp, n : integer) : logical = (
-        { for i = 0, n, 1 :
-                { for j = 0, n, 1 :
-                        print_int(matrix[i][j])
-                } { where var j : integer }
-        } { where var i : integer },
-        true
-);
-
-fun main(x: integer) : logical = (
-        { n = 3 },
-
-        seed(0),
-        matrix_generate(matrix1, n),
-        matrix_generate(matrix2, n),
-        matrix_zero(output, n),
-        matrix_multiply(matrix1, matrix2, output, n),
-
-        print_str('Matrix 1:'),
-        matrix_print(matrix1, n),
-
-        print_str('Matrix 2:'),
-        matrix_print(matrix2, n),
-
-        print_str('Multiplication Output:'),
-        matrix_print(output, n)
-) { where var matrix1 : matrixTyp; var matrix2 : matrixTyp; var output : matrixTyp; var n : integer }
-# Expected: 
-# "Matrix 1:"
-# 60
-# 48
-# 29
-# 47
-# 15
-# 53
-# 91
-# 61
-# 19
-# "Matrix 2:"
-# 54
-# 77
-# 77
-# 73
-# 62
-# 95
-# 44
-# 84
-# 75
-# "Multiplication Output:"
-# 8020
-# 10032
-# 11355
-# 5965
-# 9001
-# 9019
-# 10203
-# 12385
-# 14227
+fun print_arr(a: arr2dim): integer = (
+    { for i = 0, 2, 1:
+        print_array(a[i])
+    },
+    0
+) { where 
+    var i: integer;
+    fun print_array(a: arr[10] integer): integer = (
+        { for i = 0, 10, 1:
+            print_int(a[i])
+        },
+        0
+    ) { where 
+        var i: integer
+    }
+}
