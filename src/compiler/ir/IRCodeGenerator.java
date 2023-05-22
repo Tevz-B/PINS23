@@ -134,9 +134,9 @@ public class IRCodeGenerator implements Visitor {
                 // imcCode.store(new MemExpr(indexAddr), binary);
             } else {
                 IRExpr address;
-                if (imcLeft instanceof MemExpr memExpr)
-                    address = memExpr.expr;
-                else 
+                // if (imcLeft instanceof MemExpr memExpr) // doesnt work when inner function uses array as param!
+                //     address = memExpr.expr;
+                // else 
                     address = imcLeft;
                 IRExpr offset = new BinopExpr(imcRight, new ConstantExpr(t.elementSizeInBytes()), Operator.MUL);
                 IRExpr indexAddr = new BinopExpr(address, offset, Operator.ADD);
@@ -183,23 +183,36 @@ public class IRCodeGenerator implements Visitor {
                 rez = new NameExpr(access.label);
             else
                 rez = new MemExpr(new NameExpr(access.label));
-        } else {
-            if (a instanceof Access.Stack access) {
-                // pridobi razliko staticnih nivojev
-                int deltaSL = sl - access.staticLevel; // currentSL - definitionSL
-  
-                IRExpr addr = NameExpr.FP();
-                for (int i = 0; i < deltaSL; ++i) {
-                    addr = new MemExpr(addr);
-                }
-                var offset = new BinopExpr(addr, new ConstantExpr(access.offset), BinopExpr.Operator.ADD);
-                rez = new MemExpr(offset);
-                if (types.valueFor(name).get().isArray() && access instanceof Access.Parameter)
-                    rez = new MemExpr(rez);
-                else if (types.valueFor(name).get().isArray())
-                    rez = ((MemExpr)rez).expr;
+        } else if (a instanceof Access.Local access) {
+
+            // pridobi razliko staticnih nivojev
+            int deltaSL = sl - access.staticLevel; // currentSL - definitionSL
+
+            IRExpr addr = NameExpr.FP();
+            for (int i = 0; i < deltaSL; ++i) {
+                addr = new MemExpr(addr);
             }
+            var offset = new BinopExpr(addr, new ConstantExpr(access.offset), BinopExpr.Operator.ADD);
+            rez = new MemExpr(offset);
+            if (types.valueFor(name).get().isArray())
+                rez = offset;
         }
+        else if (a instanceof Access.Parameter access) {
+
+            // pridobi razliko staticnih nivojev
+            int deltaSL = sl - access.staticLevel; // currentSL - definitionSL
+
+            IRExpr addr = NameExpr.FP();
+            for (int i = 0; i < deltaSL; ++i) {
+                addr = new MemExpr(addr);
+            }
+            var offset = new BinopExpr(addr, new ConstantExpr(access.offset), BinopExpr.Operator.ADD);
+            rez = new MemExpr(offset);
+            // if (types.valueFor(name).get().isArray())
+            //     rez = new MemExpr(rez);
+
+        } else Report.error(name.position, "IMC: unknown access!");
+            
         imcCode.store(rez, name);
     }
 

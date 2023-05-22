@@ -1,9 +1,22 @@
-var a:arr[5]integer;
-fun main(x: integer): integer = (
-  { a[0] = 11 },
-  { a[1] = 21 },
-  { a[2] = 31 },
-  { a[3] = 41 },
-  { a[4] = 51 },
-  print_int(a[2])
-) 
+
+typ a:arr[5]integer;
+fun f(x:a):integer = (
+  f_inner(x)
+) {where
+  fun f_inner(x:a):integer = (
+    {x[0] = 0},
+    {x[1] = 11},
+    {x[2] = 22},
+    {x[3] = 33},
+    {x[4] = 44}
+  )
+};
+fun main(arg0:integer): integer = (
+  f(array1),
+  print_int(array1[0]),
+  print_int(array1[1]),
+  print_int(array1[2]),
+  print_int(array1[3]),
+  print_int(array1[4]),
+  0
+) { where var array1 : a }
