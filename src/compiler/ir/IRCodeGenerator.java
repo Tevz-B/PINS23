@@ -133,7 +133,11 @@ public class IRCodeGenerator implements Visitor {
                 // IRExpr indexAddr = new BinopExpr(address, offset, Operator.ADD);
                 // imcCode.store(new MemExpr(indexAddr), binary);
             } else {
-                var address = ((MemExpr) imcLeft).expr;
+                IRExpr address;
+                if (imcLeft instanceof MemExpr memExpr)
+                    address = memExpr.expr;
+                else 
+                    address = imcLeft;
                 IRExpr offset = new BinopExpr(imcRight, new ConstantExpr(t.elementSizeInBytes()), Operator.MUL);
                 IRExpr indexAddr = new BinopExpr(address, offset, Operator.ADD);
                 imcCode.store(new MemExpr(indexAddr), binary);

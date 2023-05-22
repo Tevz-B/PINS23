@@ -94,7 +94,6 @@ public class Interpreter {
         } else {
             throw new RuntimeException("Linearize code!");
         }
-
     }
 
     private Object execute(IRStmt stmt, Map<Frame.Temp, Object> temps) {
