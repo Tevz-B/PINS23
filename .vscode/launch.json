@@ -7,7 +7,7 @@
             "request": "launch",
             "mainClass": "Main",
             "projectName": "PINSCompiler_a1b3400d",
-            "args": ["PINS","./test8.pins","--dump", "INT", "--exec", "INT" ]
+            "args": ["PINS","./temp2.pins","--dump", "INT", "--exec", "INT" ]
         },
         {
             "type": "java",

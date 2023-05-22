@@ -2,34 +2,19 @@ typ list: arr[10] integer;
 var l: integer;
 
 fun main(x: integer): integer = (
-  { l = 10 },
-  fill_array(array, l, 69),
-  print_array(array, l),
-  fill_array2(array, l, 0),
-  print_array(array, l),
+  fill_array(10, 0),
+  print_array(a, 10),
   0
 ) { where
-  var array: list
-};
-
-fun fill_array(a: list, l: integer, x: integer): integer = (
-  { i = 0 },
-  { while i < l: (
-      { a[i] = x },
-      { i = i + 1 }
-  )},
-  0
-) { where
-  var i: integer
-};
-
-fun fill_array2(a: list, l: integer, x: integer): integer = (
-  { for i = x, l, 1:
-      { a[i] = i }
-  },
-  0
-) { where
-  var i: integer
+  var a: list;
+  fun fill_array(l: integer, x: integer): integer = (
+    { for i = x, l, 1:
+        { a[i] = i * 2 }
+    },
+    0
+  ) { where
+    var i: integer
+  }
 };
 
 fun print_array(a: list, l:integer): integer = (
