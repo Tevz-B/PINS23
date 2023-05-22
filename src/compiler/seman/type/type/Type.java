@@ -135,8 +135,8 @@ public abstract class Type {
         }
 
         @Override
-        public int sizeInBytesAsParam() { // TODO 
-            return sizeInBytes(); //Constants.WordSize;   // ref or val
+        public int sizeInBytesAsParam() {
+            return sizeInBytes();  // by value
         }
 
         @Override

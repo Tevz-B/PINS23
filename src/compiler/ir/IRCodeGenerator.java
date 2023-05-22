@@ -143,7 +143,11 @@ public class IRCodeGenerator implements Visitor {
                 }
                 IRExpr offset = new BinopExpr(imcRight, new ConstantExpr(t.elementSizeInBytes()), Operator.MUL);
                 IRExpr indexAddr = new BinopExpr(address, offset, Operator.ADD);
-                imcCode.store(new MemExpr(indexAddr), binary);
+                // dont use MEM if subscript value is array type
+                if (t.type.isArray())
+                    imcCode.store(indexAddr, binary);
+                else
+                    imcCode.store(new MemExpr(indexAddr), binary);
             }
         } else Report.error(binary.position, "IR: Binary: operator conversion broken");
     }
