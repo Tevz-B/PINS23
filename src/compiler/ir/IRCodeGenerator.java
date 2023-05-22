@@ -138,9 +138,9 @@ public class IRCodeGenerator implements Visitor {
                 //     address = memExpr.expr;
                 // else 
                     address = imcLeft;
-                if (binary.left instanceof Binary bin && bin.operator == Binary.Operator.ARR) { // if a[1][2] .. remove MEM from first
-                    address = ((MemExpr) imcLeft).expr;
-                }
+                // if (binary.left instanceof Binary bin && bin.operator == Binary.Operator.ARR) { // if a[1][2] .. remove MEM from first
+                //     address = ((MemExpr) imcLeft).expr;
+                // }
                 IRExpr offset = new BinopExpr(imcRight, new ConstantExpr(t.elementSizeInBytes()), Operator.MUL);
                 IRExpr indexAddr = new BinopExpr(address, offset, Operator.ADD);
                 // dont use MEM if subscript value is array type
