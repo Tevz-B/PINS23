@@ -109,11 +109,7 @@ public class IRCodeGenerator implements Visitor {
             BinopExpr.Operator op = BinopExpr.Operator.values()[binary.operator.ordinal()];
             imcCode.store(new BinopExpr(imcLeft, imcRight, op), binary);
         } else if (binary.operator == Binary.Operator.ASSIGN) {
-            EseqExpr eseq;
-            // if (types.valueFor(binary.left).get().isArray())
-            //     eseq = assign(new MemExpr(imcLeft), imcRight);
-            // else
-            eseq = assign(imcLeft, imcRight);
+            EseqExpr eseq = assign(imcLeft, imcRight);
             imcCode.store(eseq, binary);
         } else if (binary.operator == Binary.Operator.ARR) { // test Arr[123]
             Type.Array t = (Type.Array) types.valueFor(binary.left).get().asArray().get();
@@ -121,7 +117,15 @@ public class IRCodeGenerator implements Visitor {
                 if (((ConstantExpr) imcRight).constant >= t.size)
                     Report.error(binary.position, "Array index is larger than array size!");
             }
-            if (ARRAYS_AS_REF) {
+            if (!ARRAYS_AS_REF) {
+                IRExpr offset = new BinopExpr(imcRight, new ConstantExpr(t.elementSizeInBytes()), Operator.MUL);
+                IRExpr indexAddr = new BinopExpr(imcLeft, offset, Operator.ADD);
+                // dont use MEM if subscript value is array type
+                if (t.type.isArray())
+                    imcCode.store(indexAddr, binary);
+                else
+                    imcCode.store(new MemExpr(indexAddr), binary);
+            } else {
                 Report.error("ARRAYS_AS_REF set to true!");
                 // IRExpr address;
                 // if (t.type.isArray()) {
@@ -132,22 +136,6 @@ public class IRCodeGenerator implements Visitor {
                 // IRExpr offset = new BinopExpr(imcRight, new ConstantExpr(Constants.WordSize), Operator.MUL);
                 // IRExpr indexAddr = new BinopExpr(address, offset, Operator.ADD);
                 // imcCode.store(new MemExpr(indexAddr), binary);
-            } else {
-                IRExpr address;
-                // if (imcLeft instanceof MemExpr memExpr) // doesnt work when inner function uses array as param!
-                //     address = memExpr.expr;
-                // else 
-                    address = imcLeft;
-                // if (binary.left instanceof Binary bin && bin.operator == Binary.Operator.ARR) { // if a[1][2] .. remove MEM from first
-                //     address = ((MemExpr) imcLeft).expr;
-                // }
-                IRExpr offset = new BinopExpr(imcRight, new ConstantExpr(t.elementSizeInBytes()), Operator.MUL);
-                IRExpr indexAddr = new BinopExpr(address, offset, Operator.ADD);
-                // dont use MEM if subscript value is array type
-                if (t.type.isArray())
-                    imcCode.store(indexAddr, binary);
-                else
-                    imcCode.store(new MemExpr(indexAddr), binary);
             }
         } else Report.error(binary.position, "IR: Binary: operator conversion broken");
     }
@@ -187,37 +175,30 @@ public class IRCodeGenerator implements Visitor {
         var a = accesses.valueFor(def).get();
         if (a instanceof Access.Global access) {
             if (types.valueFor(name).get().isArray())
-                rez = new NameExpr(access.label);
+                rez = new NameExpr(access.label);               // naslov za array
             else
-                rez = new MemExpr(new NameExpr(access.label));
+                rez = new MemExpr(new NameExpr(access.label));  // vrednost za atomarne
         } else if (a instanceof Access.Local access) {
-
             // pridobi razliko staticnih nivojev
-            int deltaSL = sl - access.staticLevel; // currentSL - definitionSL
-
+            int deltaSL = sl - access.staticLevel;              // currentSL - definitionSL
             IRExpr addr = NameExpr.FP();
-            for (int i = 0; i < deltaSL; ++i) {
+            for (int i = 0; i < deltaSL; ++i)                   // dodaj MEM-e za static link
                 addr = new MemExpr(addr);
-            }
+            
             var offset = new BinopExpr(addr, new ConstantExpr(access.offset), BinopExpr.Operator.ADD);
             rez = new MemExpr(offset);
-            if (types.valueFor(name).get().isArray())
+            if (types.valueFor(name).get().isArray()) // ce je lokalni array, se poda samo naslov, MEM(naslov)
                 rez = offset;
         }
         else if (a instanceof Access.Parameter access) {
-
             // pridobi razliko staticnih nivojev
-            int deltaSL = sl - access.staticLevel; // currentSL - definitionSL
-
+            int deltaSL = sl - access.staticLevel;              // currentSL - definitionSL
             IRExpr addr = NameExpr.FP();
-            for (int i = 0; i < deltaSL; ++i) {
+            for (int i = 0; i < deltaSL; ++i)                   // dodaj MEM-e za static link
                 addr = new MemExpr(addr);
-            }
+            
             var offset = new BinopExpr(addr, new ConstantExpr(access.offset), BinopExpr.Operator.ADD);
-            rez = new MemExpr(offset);
-            // if (types.valueFor(name).get().isArray())
-            //     rez = new MemExpr(rez);
-
+            rez = new MemExpr(offset);              // ce je parameter, tudi array rabi MEM, ker se poda naslov, ne vrednost
         } else Report.error(name.position, "IMC: unknown access!");
             
         imcCode.store(rez, name);
@@ -231,7 +212,7 @@ public class IRCodeGenerator implements Visitor {
                 rez = new ConstantExpr(Integer.parseInt(literal.value));
                 break;
             case LOG:
-                rez = literal.value.equals("true") ? new ConstantExpr(1) : new ConstantExpr(0); // test for true
+                rez = literal.value.equals("true") ? new ConstantExpr(1) : new ConstantExpr(0);
                 break;
             case STR:       // STRING CONSTANT (DATA CHUNK)
                 Label label = Label.nextAnonymous();
@@ -434,19 +415,16 @@ public class IRCodeGenerator implements Visitor {
 
     @Override
     public void visit(Parameter parameter) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
     @Override
     public void visit(Array array) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
     @Override
     public void visit(Atom atom) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 

@@ -73,7 +73,6 @@ public class Interpreter {
     }
 
     private void internalInterpret(CodeChunk chunk, Map<Frame.Temp, Object> temps) {
-        // @TODO: Nastavi FP in SP na nove vrednosti!
         framePointer = stackPointer;
         stackPointer -= chunk.frame.size();
         
@@ -132,7 +131,6 @@ public class Interpreter {
 
     private Object execute(MoveStmt move, Map<Frame.Temp, Object> temps) {
         if (move.dst instanceof MemExpr memExpr) {
-            // WRITE - STORE
             var addrExpr = execute(memExpr.expr, temps);
             var src = execute(move.src, temps);
             if (addrExpr instanceof Frame.Label frm) {
@@ -140,12 +138,11 @@ public class Interpreter {
             } else {
                 memory.stM(toInt(addrExpr), src);
             }
-            return src; // Check if OK!
+            return src; 
         } 
         else if (move.dst instanceof TempExpr tempExpr)  {
             var src = execute(move.src, temps);
             temps.put(tempExpr.temp, src);
-            // memory.stT(tempExpr.temp, src);
             return src; 
         }
         else {
@@ -240,10 +237,6 @@ public class Interpreter {
             random = new Random(seed);
             return null;
         } else if (memory.ldM(call.label) instanceof CodeChunk chunk) {
-            // ...
-            // internalInterpret(chunk, new HashMap<>())
-            //                          ~~~~~~~~~~~~~ 'lokalni registri'
-            // ...
             List<Object> args = new ArrayList<>(call.args.size());
             for (IRExpr a : call.args) {
                 args.add(execute(a, temps));
@@ -253,12 +246,11 @@ public class Interpreter {
             for (Object a : args) {
                 memory.stM(stackPointer + Constants.WordSize * i++, a); // arguments
             }
-            // memory.stM(stackPointer - chunk.frame.oldFPOffset(), framePointer); // oldFP - naredi ze IMC
     
-            internalInterpret(chunk, new HashMap<>());
+            internalInterpret(chunk, new HashMap<>()); // HashMap - lokalni registri funkcije
             
             stackPointer = framePointer;
-            framePointer = toInt(memory.ldM(stackPointer - chunk.frame.oldFPOffset())); // retrieve oldFP
+            framePointer = toInt(memory.ldM(stackPointer - chunk.frame.oldFPOffset())); // preberi oldFP iz pomnilnika
             return memory.ldM(stackPointer);
         } else {
             throw new RuntimeException("Only functions can be called!");
