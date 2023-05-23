@@ -1,15 +1,60 @@
 
+# ne dela se
+fun mult(a:mat4, b:mat4, res:mat4):logical=(
+  {for i=0,3,1 : 
+    {for j=0,4,1 :
+      {for k=0,5,1 :
+        {for l=0,6,1 : (
+          {matrix1[i][j][k][l] = 1},
+          {matrix2[i][j][k][l] = 2}
+          )
+        }
+      }
+    }
+  },
 
-fun add(p1:integer, p2:integer):integer = p1 + p2;
-fun hash(p:integer):integer = (
-    {ret = 1 + p * 10 + 2},
-    ret
-) { where var ret:integer }
 
-fun main(arg0:integer):integer=(
-  {x=add(5, 15)}, # 20
-  {y=hash(x)}, # 203
-  y  # 203
-) { where var x:integer; 
-    var y:integer
-  }
+
+  true
+);
+
+
+
+fun main(arg0:int):int = (
+  {for i=0,3,1 : 
+    {for j=0,4,1 :
+      {for k=0,5,1 :
+        {for l=0,6,1 : (
+          {matrix1[i][j][k][l] = 1},
+          {matrix2[i][j][k][l] = 2}
+          )
+        }
+      }
+    }
+  },
+  mult(matrix1, matrix2, result),
+  print_mat(result),
+  0
+) { where
+  var matrix1 : mat4;
+  var matrix2 : mat4;
+  var result : mat4;
+  var i : int;
+  var j : int;
+  var k : int;
+  var l : int;
+  fun print_mat(matrix:mat4):logical=(
+    {for i=0,3,1 : 
+      {for j=0,4,1 :
+        {for k=0,5,1 :
+          {for l=0,6,1 : 
+            print_int(matrix1[i][j][k][l])
+          }
+        }
+      }
+    },
+    true
+  )
+};
+typ int : integer;
+typ mat4 : arr[3] arr[4] arr[5] arr[6] int

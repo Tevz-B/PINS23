@@ -214,12 +214,17 @@ public class Interpreter {
         } else if (call.label.name.equals(Constants.printStringLabel)) {
             if (call.args.size() != 2) { throw new RuntimeException("Invalid argument count!"); }
             var address = execute(call.args.get(1), temps);
-            if (address instanceof String)
-                outputStream.ifPresent(stream -> stream.println("\""+(String)address+"\""));
+            String out;
+            if (address instanceof String str)
+                out = str;
             else {
                 var res = memory.ldM(toInt(address));
-                outputStream.ifPresent(stream -> stream.println("\""+res+"\""));
+                if (res instanceof String str)
+                    out = str;
+                else
+                    out = "";
             }
+            outputStream.ifPresent(stream -> stream.println("\""+out+"\""));
             return null;
         } else if (call.label.name.equals(Constants.printLogLabel)) {
             if (call.args.size() != 2) { throw new RuntimeException("Invalid argument count!"); }
